@@ -800,3 +800,139 @@ td code { font-size: 11.5px; }
   font-size: 11px; font-weight: 700;
   border: 1px solid; text-transform: uppercase; letter-spacing: .05em;
 }
+
+/* ── Beginner & Low-Level Visual Learning Components ──── */
+.hw-panel {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-b);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin: 20px 0;
+  position: relative;
+}
+.hw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.hw-badge.silicon {
+  background: rgba(64, 112, 160, 0.18);
+  color: var(--blue-bright);
+  border: 1px solid var(--blue-bright);
+}
+.hw-badge.space {
+  background: rgba(184, 152, 32, 0.18);
+  color: var(--yellow-bright);
+  border: 1px solid var(--yellow-bright);
+}
+.hw-badge.c-lever {
+  background: rgba(72, 128, 72, 0.18);
+  color: var(--green-bright);
+  border: 1px solid var(--green-bright);
+}
+
+.analogy-box {
+  background: var(--bg-el);
+  border-left: 4px solid var(--accent);
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 0 6px 6px 0;
+}
+.analogy-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-bright);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mem-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+  font-family: var(--font-mono);
+}
+.mem-cell {
+  background: var(--bg-hard);
+  border: 1px solid var(--border-b);
+  border-radius: 4px;
+  padding: 8px 12px;
+  min-width: 90px;
+  text-align: center;
+}
+.mem-cell.active-cell {
+  border-color: var(--blue-bright);
+  box-shadow: 0 0 8px rgba(64, 112, 160, 0.3);
+}
+.mem-cell.pad-cell {
+  border-style: dashed;
+  border-color: var(--red-bright);
+  opacity: 0.7;
+}
+.mem-addr {
+  font-size: 10px;
+  color: var(--fg-subtle);
+  margin-bottom: 4px;
+}
+.mem-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.mem-label {
+  font-size: 10px;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.concept-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 18px 0;
+}
+.concept-step {
+  display: flex;
+  gap: 14px;
+  background: var(--bg-1);
+  padding: 14px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-bright);
+  background: var(--bg-2);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.step-content h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: var(--fg);
+}
+.step-content p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+
