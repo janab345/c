@@ -1,0 +1,3992 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="black-metal">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C for cFS — NASA Core Flight System Learning Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <a class="sb-logo" onclick="navigateTo('home')" href="#home">
+        <div class="sb-logo-icon">C/cFS</div>
+        <div class="sb-logo-text">
+          <span class="sb-logo-name">C for cFS</span>
+          <span class="sb-logo-sub">NASA Flight Software</span>
+        </div>
+      </a>
+      <div class="theme-row">
+        <button class="th-btn active" data-theme="black-metal" onclick="applyTheme('black-metal')">⚫ Black Metal</button>
+        <button class="th-btn" data-theme="gruvbox" onclick="applyTheme('gruvbox')">🟤 Gruvbox</button>
+      </div>
+    </div>
+    <div class="sb-search">
+      <span class="ico">⌕</span>
+      <input type="search" placeholder="Search topics…">
+    </div>
+    <nav class="nav-tree"><!-- built by JS --></nav>
+    <div class="sb-foot">
+      <div class="prog-lbl">
+        <span>Progress</span>
+        <span><span class="prog-count">0/15</span> · <span class="prog-pct">0%</span></span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="top-bar">
+      <button class="menu-toggle">☰</button>
+      <div class="breadcrumb">C for cFS</div>
+    </div>
+    <div class="content">
+
+<!-- ==================== HOME ==================== -->
+
+<section id="home" class="sec active">
+  <div class="hero">
+    <div class="hero-badge">🚀 NASA Core Flight System</div>
+    <h1 class="hero-title">C for Flight Software</h1>
+    <p class="hero-sub">A structured, hands-on curriculum for writing production-quality C code for NASA's core Flight System (cFS). From exact-width types to CCSDS packets — master the patterns used in real spacecraft software.</p>
+    <button class="hero-btn" onclick="navigateTo('p1t1')">Start Learning →</button>
+  </div>
+
+  <div class="phase-cards">
+    <div class="phase-card" onclick="navigateTo('p1t1')">
+      <div class="pc-dot" style="background:var(--ph1)"></div>
+      <div class="pc-phase">PHASE 1</div>
+      <div class="pc-title">C Foundations for Flight SW</div>
+      <div class="pc-desc">Exact-width types, pointers, structs, unions, memory layout, and endianness — the building blocks of reliable embedded code.</div>
+      <div class="pc-topics">3 topics</div>
+    </div>
+    <div class="phase-card" onclick="navigateTo('p2t1')">
+      <div class="pc-dot" style="background:var(--ph2)"></div>
+      <div class="pc-phase">PHASE 2</div>
+      <div class="pc-title">Robustness &amp; Safety</div>
+      <div class="pc-desc">Deterministic memory management, defensive programming, NASA Power of 10 rules, MISRA C, and hardware-aware qualifiers.</div>
+      <div class="pc-topics">3 topics</div>
+    </div>
+    <div class="phase-card" onclick="navigateTo('p3t1')">
+      <div class="pc-dot" style="background:var(--ph3)"></div>
+      <div class="pc-phase">PHASE 3</div>
+      <div class="pc-title">Concurrency &amp; RTOS Patterns</div>
+      <div class="pc-desc">Thread safety, mutexes, semaphores, priority inversion, IPC with message queues, and precise timing with POSIX clocks.</div>
+      <div class="pc-topics">3 topics</div>
+    </div>
+    <div class="phase-card" onclick="navigateTo('p4t1')">
+      <div class="pc-dot" style="background:var(--ph4)"></div>
+      <div class="pc-phase">PHASE 4</div>
+      <div class="pc-title">cFS Architecture &amp; APIs</div>
+      <div class="pc-desc">cFE services, Software Bus pub/sub, app lifecycle, command dispatch tables, table services, events, and CCSDS packets.</div>
+      <div class="pc-topics">6 topics</div>
+    </div>
+    <div class="phase-card" onclick="navigateTo('p5t1')">
+      <div class="pc-dot" style="background:var(--ph5)"></div>
+      <div class="pc-phase">PHASE 5</div>
+      <div class="pc-title">Build, Test &amp; Analysis</div>
+      <div class="pc-desc">CMake for cFS apps, static analysis with cppcheck &amp; clang-tidy, sanitizers, Valgrind, and unit testing with UT-Assert.</div>
+      <div class="pc-topics">3 topics</div>
+    </div>
+  </div>
+</section>
+
+<section id="p1t1" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph1)"></span>PHASE 1</span>
+    <h2 class="sec-title">Exact-Width Types &amp; Endianness</h2>
+    <p class="sec-sub">Why platform-agnostic integer types and byte-order awareness are non-negotiable in flight software.</p>
+  </div>
+
+  <div class="theory">
+    <h3>Fixed-Width Integer Types (<code>&lt;stdint.h&gt;</code>)</h3>
+    <p>The C standard only guarantees minimum ranges for built-in types. On a 32-bit CPU <code>int</code> is 32 bits; on a 16-bit CPU it may be 16 bits. Flight software targets multiple processors (SPARC, PowerPC, ARM, x86) — using <code>unsigned int</code> in a packet header means different byte sizes on different targets. NASA mandates fixed-width types throughout cFS.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Always use <code>uint8_t</code>, <code>uint16_t</code>, <code>uint32_t</code>, <code>uint64_t</code>, <code>int8_t</code>, <code>int16_t</code>, <code>int32_t</code>, <code>int64_t</code> for any value whose width matters. Include <code>&lt;stdint.h&gt;</code> (or <code>&lt;inttypes.h&gt;</code> for printf macros like <code>PRId32</code>).
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Type</th><th>Width</th><th>Range</th><th>cFS Use</th></tr></thead>
+      <tbody>
+        <tr><td><code>uint8_t</code></td><td>8 bits</td><td>0 – 255</td><td>Packet bytes, checksums, boolean flags</td></tr>
+        <tr><td><code>uint16_t</code></td><td>16 bits</td><td>0 – 65535</td><td>APID, sequence count, packet length</td></tr>
+        <tr><td><code>uint32_t</code></td><td>32 bits</td><td>0 – 4 294 967 295</td><td>Status codes, addresses, counters</td></tr>
+        <tr><td><code>int32_t</code></td><td>32 bits</td><td>±2 147 483 648</td><td>cFS return codes (CFE_Status_t)</td></tr>
+        <tr><td><code>uint64_t</code></td><td>64 bits</td><td>0 – 2⁶⁴−1</td><td>Timestamps, 64-bit science data</td></tr>
+        <tr><td><code>size_t</code></td><td>platform</td><td>0 – SIZE_MAX</td><td>Sizes passed to memcpy/memset</td></tr>
+        <tr><td><code>bool</code></td><td>≥1 bit</td><td>false/true</td><td><code>&lt;stdbool.h&gt;</code> — 0 or 1</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Endianness</h3>
+    <p>Endianness describes how multi-byte integers are stored in memory. <strong>Little-endian</strong> (x86, ARM default) stores the least-significant byte first. <strong>Big-endian</strong> (SPARC, PowerPC, network byte order) stores the most-significant byte first.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-title">NOTE</div>
+      CCSDS Space Packet Protocol mandates <strong>big-endian (network byte order)</strong> for all header fields. When building packets on a little-endian host, you must byte-swap every multi-byte field before writing it to the wire buffer.
+    </div>
+
+    <p>The POSIX functions <code>htons()</code> (host-to-network short, 16-bit) and <code>htonl()</code> (host-to-network long, 32-bit) in <code>&lt;arpa/inet.h&gt;</code> perform this swap on little-endian hosts and are no-ops on big-endian hosts. For embedded targets without POSIX, write your own using bitwise operations.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Detect endianness at runtime by writing <code>0x01020304</code> into a <code>uint32_t</code> and reading the first byte as a <code>uint8_t</code>. If it reads <code>0x04</code>, you are on a little-endian machine.
+    </div>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">sizeof demo — exact-width vs platform types</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex1_sizeof.c — compile: gcc -std=c99 -Wall ex1_sizeof.c -o ex1_sizeof */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;stddef.h&gt;
+#include &lt;stdio.h&gt;
+
+int main(void)
+{
+    /* Built-in types — sizes are implementation-defined */
+    printf("=== Built-in types (platform-dependent) ===\n");
+    printf("sizeof(char)          = %zu\n", sizeof(char));
+    printf("sizeof(short)         = %zu\n", sizeof(short));
+    printf("sizeof(int)           = %zu\n", sizeof(int));
+    printf("sizeof(long)          = %zu\n", sizeof(long));
+    printf("sizeof(long long)     = %zu\n", sizeof(long long));
+    printf("sizeof(unsigned int)  = %zu\n", sizeof(unsigned int));
+
+    /* Fixed-width types — sizes guaranteed by the standard */
+    printf("\n=== Fixed-width types (guaranteed) ===\n");
+    printf("sizeof(uint8_t)       = %zu\n", sizeof(uint8_t));
+    printf("sizeof(uint16_t)      = %zu\n", sizeof(uint16_t));
+    printf("sizeof(uint32_t)      = %zu\n", sizeof(uint32_t));
+    printf("sizeof(uint64_t)      = %zu\n", sizeof(uint64_t));
+    printf("sizeof(int32_t)       = %zu\n", sizeof(int32_t));
+    printf("sizeof(bool)          = %zu\n", sizeof(bool));
+    printf("sizeof(size_t)        = %zu\n", sizeof(size_t));
+
+    /* Demonstrate that fixed-width types are essential for structs */
+    struct BadPacketHeader {
+        unsigned int apid;     /* WRONG: may be 2 or 4 bytes */
+        unsigned int length;   /* WRONG */
+    };
+
+    struct GoodPacketHeader {
+        uint16_t apid;         /* Always 2 bytes */
+        uint16_t length;       /* Always 2 bytes */
+    };
+
+    printf("\n=== Struct sizes ===\n");
+    printf("sizeof(BadPacketHeader)  = %zu (unreliable)\n",
+           sizeof(struct BadPacketHeader));
+    printf("sizeof(GoodPacketHeader) = %zu (always 4)\n",
+           sizeof(struct GoodPacketHeader));
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Runtime endianness detection</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex2_endian.c — compile: gcc -std=c99 -Wall ex2_endian.c -o ex2_endian */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+typedef enum {
+    ENDIAN_LITTLE = 0,
+    ENDIAN_BIG    = 1,
+    ENDIAN_UNKNOWN
+} Endianness_t;
+
+/* Detect host endianness at runtime */
+Endianness_t detect_endianness(void)
+{
+    /* Union allows viewing the same 4-byte region as both uint32 and byte array */
+    union {
+        uint32_t word;
+        uint8_t  bytes[4];
+    } probe;
+
+    probe.word = 0x01020304U;
+
+    /* On little-endian: bytes[0] = 0x04 (least significant first)
+     * On big-endian:    bytes[0] = 0x01 (most significant first) */
+    if (probe.bytes[0] == 0x04U) {
+        return ENDIAN_LITTLE;
+    } else if (probe.bytes[0] == 0x01U) {
+        return ENDIAN_BIG;
+    }
+    return ENDIAN_UNKNOWN;
+}
+
+int main(void)
+{
+    Endianness_t e = detect_endianness();
+
+    printf("Host endianness: %s\n",
+           e == ENDIAN_LITTLE ? "Little-Endian (x86/ARM default)" :
+           e == ENDIAN_BIG    ? "Big-Endian (SPARC/PowerPC/CCSDS)" :
+                                "Unknown");
+
+    /* Visualize how 0xDEADBEEF is stored in memory */
+    uint32_t val = 0xDEADBEEFU;
+    uint8_t  raw[4];
+    memcpy(raw, &amp;val, 4);
+
+    printf("0xDEADBEEF in memory: ");
+    for (int i = 0; i &lt; 4; i++) {
+        printf("[%d]=0x%02X ", i, raw[i]);
+    }
+    printf("\n");
+
+    if (e == ENDIAN_LITTLE) {
+        printf("Little-endian: LSB (0xEF) is at address 0, MSB (0xDE) at address 3\n");
+    } else {
+        printf("Big-endian: MSB (0xDE) is at address 0, LSB (0xEF) at address 3\n");
+    }
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 3 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Manual byte-swap functions (portable, no POSIX required)</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex3_byteswap.c — compile: gcc -std=c99 -Wall ex3_byteswap.c -o ex3_byteswap */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+
+/* Swap bytes of a 16-bit value */
+static inline uint16_t bswap16(uint16_t x)
+{
+    return (uint16_t)(((x &amp; 0x00FFU) &lt;&lt; 8) |
+                      ((x &amp; 0xFF00U) &gt;&gt; 8));
+}
+
+/* Swap bytes of a 32-bit value */
+static inline uint32_t bswap32(uint32_t x)
+{
+    return ((x &amp; 0x000000FFU) &lt;&lt; 24) |
+           ((x &amp; 0x0000FF00U) &lt;&lt;  8) |
+           ((x &amp; 0x00FF0000U) &gt;&gt;  8) |
+           ((x &amp; 0xFF000000U) &gt;&gt; 24);
+}
+
+/* Convert host uint32_t to big-endian (network byte order).
+ * On a big-endian host this is a no-op. */
+static inline uint32_t host_to_be32(uint32_t x)
+{
+    union { uint32_t word; uint8_t bytes[4]; } probe = { .word = 1U };
+    /* probe.bytes[0] == 1 means little-endian */
+    return (probe.bytes[0] == 1U) ? bswap32(x) : x;
+}
+
+static inline uint16_t host_to_be16(uint16_t x)
+{
+    union { uint16_t word; uint8_t bytes[2]; } probe = { .word = 1U };
+    return (probe.bytes[0] == 1U) ? bswap16(x) : x;
+}
+
+int main(void)
+{
+    uint32_t host_val = 0x12345678U;
+    uint32_t be_val   = host_to_be32(host_val);
+
+    printf("Host value   : 0x%08X\n", host_val);
+    printf("Big-endian   : 0x%08X\n", be_val);
+
+    /* Verify round-trip */
+    uint32_t back = host_to_be32(be_val);
+    printf("Round-trip   : 0x%08X (should match host)\n", back);
+
+    /* CCSDS APID example: APID 0x18D must go on wire as big-endian */
+    uint16_t apid_field = 0x180DU; /* Version+Type+SecHdr bits + APID */
+    printf("\nCCSDS field host: 0x%04X  wire: 0x%04X\n",
+           apid_field, host_to_be16(apid_field));
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Host-to-Big-Endian Converter</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Complete the function <code>to_big_endian_u32()</code> that detects the host byte order and returns the value in big-endian format. Also implement <code>print_bytes()</code> to display the raw memory layout.</p>
+        <p><strong>Expected output (on little-endian host):</strong></p>
+        <pre>Host is: Little-Endian
+Input  0xAABBCCDD bytes: DD CC BB AA
+Output 0xDDCCBBAA bytes: AA BB CC DD</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;stdio.h&gt;&#10;#include &lt;string.h&gt;&#10;&#10;/* TODO: Detect if host is little-endian */&#10;static int is_little_endian(void)&#10;{&#10;    /* Hint: use a union with uint32_t and uint8_t[4] */&#10;    return 0; /* placeholder */&#10;}&#10;&#10;/* TODO: Convert host uint32_t to big-endian */&#10;uint32_t to_big_endian_u32(uint32_t val)&#10;{&#10;    /* If host is already big-endian, return val unchanged */&#10;    /* Otherwise byte-swap using bitwise operations */&#10;    return val; /* placeholder */&#10;}&#10;&#10;void print_bytes(const char *label, uint32_t val)&#10;{&#10;    uint8_t buf[4];&#10;    memcpy(buf, &amp;val, 4);&#10;    printf("%s 0x%08X bytes:", label, val);&#10;    for (int i = 0; i &lt; 4; i++) printf(" %02X", buf[i]);&#10;    printf("\n");&#10;}&#10;&#10;int main(void)&#10;{&#10;    printf("Host is: %s\n", is_little_endian() ? "Little-Endian" : "Big-Endian");&#10;    uint32_t input  = 0xAABBCCDDU;&#10;    uint32_t output = to_big_endian_u32(input);&#10;    print_bytes("Input ", input);&#10;    print_bytes("Output", output);&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+/* TODO: Detect if host is little-endian */
+static int is_little_endian(void)
+{
+    /* Hint: use a union with uint32_t and uint8_t[4] */
+    return 0; /* placeholder */
+}
+
+/* TODO: Convert host uint32_t to big-endian */
+uint32_t to_big_endian_u32(uint32_t val)
+{
+    return val; /* placeholder */
+}
+
+void print_bytes(const char *label, uint32_t val)
+{
+    uint8_t buf[4];
+    memcpy(buf, &amp;val, 4);
+    printf("%s 0x%08X bytes:", label, val);
+    for (int i = 0; i &lt; 4; i++) printf(" %02X", buf[i]);
+    printf("\n");
+}
+
+int main(void)
+{
+    printf("Host is: %s\n", is_little_endian() ? "Little-Endian" : "Big-Endian");
+    uint32_t input  = 0xAABBCCDDU;
+    uint32_t output = to_big_endian_u32(input);
+    print_bytes("Input ", input);
+    print_bytes("Output", output);
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">Why do flight software standards prefer <code>uint32_t</code> over <code>unsigned int</code>?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)"><code>unsigned int</code> is slower on RISC processors</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)"><code>uint32_t</code> is guaranteed to be exactly 32 bits on every conforming platform; <code>unsigned int</code> size is implementation-defined and may be 16 or 32 bits</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)"><code>unsigned int</code> cannot hold negative numbers</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)"><code>uint32_t</code> is faster because it avoids sign extension</div>
+      </div>
+      <div class="quiz-expl">The C standard (C99 §6.2.6) only guarantees that <code>unsigned int</code> is at least 16 bits wide. On a 16-bit embedded CPU it stays 16 bits. Flight software that runs on SPARC, PowerPC, ARM, and x86 must produce identical binary packet layouts, so every field with a defined width must use a fixed-width type.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p1t2" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph1)"></span>PHASE 1</span>
+    <h2 class="sec-title">Pointers in Depth</h2>
+    <p class="sec-sub">Pointer arithmetic, void*, function pointers, const combinations, and the dispatch table pattern used throughout cFS command handling.</p>
+  </div>
+
+  <div class="theory">
+    <h3>Pointer Basics &amp; Arithmetic</h3>
+    <p>A pointer stores the <em>address</em> of another object. Pointer arithmetic respects the pointed-to type: <code>ptr + 1</code> advances by <code>sizeof(*ptr)</code> bytes. This is why <code>arr[i]</code> and <code>*(arr + i)</code> are identical — array subscripting is defined in terms of pointer arithmetic.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-title">NOTE</div>
+      Pointer arithmetic is only valid within an array (or one past its last element). Arithmetic on pointers to unrelated objects is undefined behavior — the compiler may generate incorrect code.
+    </div>
+
+    <h3><code>void*</code> — Generic Buffers</h3>
+    <p>cFS Software Bus deals with messages of unknown type at the framework layer. The SB layer passes <code>CFE_SB_Buffer_t *</code> (essentially a <code>void *</code>-like opaque pointer) to app-level handlers. <code>void *</code> can receive any pointer without a cast and can be cast to any pointer type, making it the standard way to write type-generic buffer-manipulation code.</p>
+
+    <h3>Function Pointers &amp; Dispatch Tables</h3>
+    <p>A function pointer stores the address of a function and can call it indirectly. Syntax: <code>return_type (*name)(param_types)</code>. cFS command handlers are stored in tables of function pointers — one entry per command function code — so routing a command is an O(1) array lookup rather than a chain of <code>if</code>/<code>else</code>.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Use a <code>typedef</code> to name the function-pointer type once: <code>typedef void (*CmdHandler_t)(const CFE_SB_Buffer_t *);</code>. This makes table declarations and function signatures far more readable.
+    </div>
+
+    <h3><code>const</code> with Pointers — Three Combinations</h3>
+    <table class="data-table">
+      <thead><tr><th>Declaration</th><th>Pointer mutable?</th><th>Pointed-to mutable?</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td><code>int *p</code></td><td>Yes</td><td>Yes</td><td>General read-write pointer</td></tr>
+        <tr><td><code>const int *p</code></td><td>Yes</td><td>No</td><td>Read-only view (can re-point p)</td></tr>
+        <tr><td><code>int * const p</code></td><td>No</td><td>Yes</td><td>Fixed address, mutable data</td></tr>
+        <tr><td><code>const int * const p</code></td><td>No</td><td>No</td><td>Fully constant (ROM pointer)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Double Pointers</h3>
+    <p>A <code>T **pp</code> points to a <code>T *</code>. Common uses: (1) output parameters where the function must set a caller's pointer (e.g., <code>void alloc(int **out)</code>), (2) arrays of strings (<code>char **argv</code>), (3) linked-list manipulation.</p>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Pointer arithmetic &amp; array-pointer duality</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_ptrarith.c — gcc -std=c99 -Wall ex_ptrarith.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+
+int main(void)
+{
+    uint32_t buf[5] = {10, 20, 30, 40, 50};
+    uint32_t *p = buf;  /* p points to buf[0] */
+
+    printf("=== Array vs Pointer Equivalence ===\n");
+    for (int i = 0; i &lt; 5; i++) {
+        printf("buf[%d]=%u  *(p+%d)=%u  addr_diff=%td bytes\n",
+               i, buf[i],
+               i, *(p + i),
+               (p + i) - p);  /* ptrdiff_t in elements */
+    }
+
+    printf("\n=== Pointer increment ===\n");
+    uint32_t *q = buf;
+    printf("q before: %p  value: %u\n", (void*)q, *q);
+    q++;  /* advances by sizeof(uint32_t) = 4 bytes */
+    printf("q after++ : %p  value: %u\n", (void*)q, *q);
+
+    printf("\n=== Byte stepping with uint8_t* ===\n");
+    uint8_t *byte_ptr = (uint8_t*)buf;
+    printf("First 8 bytes of buf: ");
+    for (int i = 0; i &lt; 8; i++) {
+        printf("%02X ", byte_ptr[i]);
+    }
+    printf("\n");
+
+    /* const pointer combinations */
+    const uint32_t *cp   = buf;   /* can't modify *cp, CAN re-point cp */
+    uint32_t * const fp  = buf;   /* CAN modify *fp, can't re-point fp */
+
+    /* cp = buf + 1;  -- OK */
+    /* *cp = 99;      -- compile error */
+    /* *fp = 99;      -- OK */
+    /* fp = buf + 1;  -- compile error */
+    (void)cp; (void)fp;
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">void* generic buffer copy (cFS message buffer pattern)</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_voidptr.c — gcc -std=c99 -Wall ex_voidptr.c */
+#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdbool.h&gt;
+
+#define MAX_MSG_SIZE 128U
+
+/* Simulated cFS-style message buffer — the SB layer is type-agnostic */
+typedef struct {
+    uint8_t  data[MAX_MSG_SIZE];
+    uint32_t length;
+} MsgBuffer_t;
+
+/* Generic memcpy wrapper with bounds check — mirrors CFE_PSP_MemCpy */
+static bool safe_buf_copy(void *dst, uint32_t dst_size,
+                          const void *src, uint32_t copy_len)
+{
+    if (dst == NULL || src == NULL) {
+        printf("ERROR: NULL pointer argument\n");
+        return false;
+    }
+    if (copy_len > dst_size) {
+        printf("ERROR: copy_len %u exceeds dst_size %u\n",
+               copy_len, dst_size);
+        return false;
+    }
+    memcpy(dst, src, copy_len);
+    return true;
+}
+
+/* App-level command handler receives a void* (the raw SB buffer).
+ * It casts to the known message type — safe only if MsgId matched first. */
+typedef struct {
+    uint16_t stream_id;   /* CCSDS primary header word 0 */
+    uint16_t sequence;    /* CCSDS primary header word 1 */
+    uint16_t pkt_len;     /* CCSDS primary header word 2 */
+    uint8_t  fc;          /* function code */
+    uint8_t  checksum;
+    uint32_t param;       /* command parameter */
+} MyCmd_t;
+
+static void process_command(const void *buf, uint32_t buf_len)
+{
+    if (buf_len &lt; sizeof(MyCmd_t)) {
+        printf("ERROR: buffer too small (%u &lt; %zu)\n",
+               buf_len, sizeof(MyCmd_t));
+        return;
+    }
+    const MyCmd_t *cmd = (const MyCmd_t*)buf;  /* safe cast after length check */
+    printf("Command received: FC=0x%02X param=%u\n", cmd-&gt;fc, cmd-&gt;param);
+}
+
+int main(void)
+{
+    MsgBuffer_t mbuf = {0};
+
+    /* Build a fake command in the buffer */
+    MyCmd_t cmd = {
+        .stream_id = 0x1880,
+        .sequence  = 0xC001,
+        .pkt_len   = sizeof(MyCmd_t) - 7,
+        .fc        = 0x02,
+        .checksum  = 0x00,
+        .param     = 42
+    };
+
+    safe_buf_copy(mbuf.data, sizeof(mbuf.data), &amp;cmd, sizeof(cmd));
+    mbuf.length = sizeof(cmd);
+
+    /* SB passes the buffer as void* — the app casts it */
+    process_command(mbuf.data, mbuf.length);
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 3 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Function pointer dispatch table (cFS command routing pattern)</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_dispatch.c — gcc -std=c99 -Wall ex_dispatch.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+/* --- Types --- */
+typedef struct {
+    uint8_t  data[64];
+    uint16_t length;
+} SB_Buffer_t;
+
+/* All command handlers have this signature */
+typedef void (*CmdHandler_t)(const SB_Buffer_t *buf);
+
+/* Dispatch table entry: handler + expected packet length */
+typedef struct {
+    CmdHandler_t handler;
+    uint16_t     expected_len;
+} CmdEntry_t;
+
+/* --- Command function codes --- */
+#define CC_NOOP           0U
+#define CC_RESET_CTRS     1U
+#define CC_SET_PARAM      2U
+#define NUM_COMMANDS      3U
+
+/* --- Handler implementations --- */
+static void HandleNoop(const SB_Buffer_t *buf)
+{
+    (void)buf;
+    printf("[CMD] NOOP executed — no action taken\n");
+}
+
+static void HandleResetCounters(const SB_Buffer_t *buf)
+{
+    (void)buf;
+    printf("[CMD] Counters reset to zero\n");
+}
+
+typedef struct {
+    uint8_t  hdr[8];
+    uint32_t value;
+} SetParamCmd_t;
+
+static void HandleSetParam(const SB_Buffer_t *buf)
+{
+    const SetParamCmd_t *cmd = (const SetParamCmd_t*)buf-&gt;data;
+    printf("[CMD] SetParam: value=%u\n", cmd-&gt;value);
+}
+
+/* --- Dispatch table (indexed by function code) --- */
+static const CmdEntry_t g_CmdTable[NUM_COMMANDS] = {
+    [CC_NOOP]        = { HandleNoop,          8  },
+    [CC_RESET_CTRS]  = { HandleResetCounters, 8  },
+    [CC_SET_PARAM]   = { HandleSetParam,      sizeof(SetParamCmd_t) },
+};
+
+/* --- Dispatcher --- */
+static void dispatch_command(uint8_t fc, const SB_Buffer_t *buf)
+{
+    if (fc &gt;= NUM_COMMANDS) {
+        printf("[ERR] Unknown function code: %u\n", fc);
+        return;
+    }
+    if (buf-&gt;length != g_CmdTable[fc].expected_len) {
+        printf("[ERR] FC=%u length mismatch: got=%u expected=%u\n",
+               fc, buf-&gt;length, g_CmdTable[fc].expected_len);
+        return;
+    }
+    /* O(1) dispatch — no switch/if chain */
+    g_CmdTable[fc].handler(buf);
+}
+
+int main(void)
+{
+    SB_Buffer_t buf = {0};
+
+    buf.length = 8;
+    dispatch_command(CC_NOOP, &amp;buf);
+    dispatch_command(CC_RESET_CTRS, &amp;buf);
+
+    SetParamCmd_t spcmd = {0};
+    spcmd.value = 1234;
+    memcpy(buf.data, &amp;spcmd, sizeof(spcmd));
+    buf.length = sizeof(spcmd);
+    dispatch_command(CC_SET_PARAM, &amp;buf);
+
+    /* Test invalid function code */
+    dispatch_command(99, &amp;buf);
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Simple Command Dispatch Table</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Implement a command dispatch table for 3 commands: <code>CMD_PING</code> (FC=0), <code>CMD_LED_ON</code> (FC=1), <code>CMD_LED_OFF</code> (FC=2). Each handler prints a descriptive message. The dispatcher must check the function code range and call the appropriate handler.</p>
+        <p><strong>Expected output:</strong></p>
+        <pre>PING response sent
+LED turned ON
+LED turned OFF
+ERROR: invalid function code 5</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;stdio.h&gt;&#10;&#10;#define CMD_PING    0&#10;#define CMD_LED_ON  1&#10;#define CMD_LED_OFF 2&#10;#define NUM_CMDS    3&#10;&#10;/* TODO: Define your function pointer type */&#10;/* typedef ... CmdFn_t; */&#10;&#10;/* TODO: Implement handler functions */&#10;&#10;/* TODO: Declare the dispatch table */&#10;&#10;/* TODO: Implement dispatcher */&#10;void dispatch(uint8_t fc)&#10;{&#10;    /* check range, then call table[fc]() */&#10;}&#10;&#10;int main(void)&#10;{&#10;    dispatch(CMD_PING);&#10;    dispatch(CMD_LED_ON);&#10;    dispatch(CMD_LED_OFF);&#10;    dispatch(5); /* invalid */&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+
+#define CMD_PING    0
+#define CMD_LED_ON  1
+#define CMD_LED_OFF 2
+#define NUM_CMDS    3
+
+/* TODO: Define your function pointer type */
+
+/* TODO: Implement handler functions */
+
+/* TODO: Declare dispatch table */
+
+/* TODO: Implement dispatcher */
+void dispatch(uint8_t fc)
+{
+}
+
+int main(void)
+{
+    dispatch(CMD_PING);
+    dispatch(CMD_LED_ON);
+    dispatch(CMD_LED_OFF);
+    dispatch(5);
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">Given <code>const int *p</code>, which statement is true?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Both the pointer and the pointed-to value are immutable</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">The pointed-to value is immutable, but the pointer itself can be reassigned to point elsewhere</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The pointer address is immutable, but you can modify the value through it</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)"><code>const int *p</code> is the same as <code>int * const p</code></div>
+      </div>
+      <div class="quiz-expl"><code>const int *p</code> means "pointer to const int" — you cannot do <code>*p = 5</code> but you can do <code>p = &amp;other_int</code>. To freeze the pointer itself, write <code>int * const p = &amp;x</code>.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p1t3" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph1)"></span>PHASE 1</span>
+    <h2 class="sec-title">Structs, Unions &amp; Memory Layout</h2>
+    <p class="sec-sub">Alignment, padding, packed attributes, bit-fields, and unions — the tools for mapping C types directly onto wire protocols.</p>
+  </div>
+
+  <div class="theory">
+    <h3>Struct Layout &amp; Alignment</h3>
+    <p>The compiler aligns each struct member to its natural alignment (typically equal to its size) and may insert <em>padding</em> bytes to satisfy alignment constraints. A <code>char</code> followed by an <code>int</code> often wastes 3 bytes of padding between them.</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">WARNING</div>
+      Never use an unmodified C struct to map onto a wire protocol unless it is declared <code>__attribute__((packed))</code>. Compiler padding will silently misalign your fields against the protocol definition.
+    </div>
+
+    <h3><code>__attribute__((packed))</code></h3>
+    <p>GCC and Clang support <code>__attribute__((packed))</code> on a struct to eliminate all padding. The struct's layout then exactly matches the byte sequence described in the protocol specification. Every CCSDS header struct in cFS uses this attribute. The trade-off is that the compiler may generate slower unaligned-access instructions on some architectures.</p>
+
+    <h3>Bit-Fields</h3>
+    <p>Within a packed struct, bit-fields let individual members be fewer than 8 bits wide, making it possible to declare the CCSDS Version (3 bits), Type (1 bit), and SecHdr flag (1 bit) as separate named fields in a 16-bit word.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-title">NOTE</div>
+      Bit-field ordering within a storage unit is implementation-defined. cFS uses bitfields carefully and tests them against known-good byte sequences on each new target.
+    </div>
+
+    <h3><code>offsetof</code> &amp; <code>sizeof</code></h3>
+    <p><code>offsetof(type, member)</code> from <code>&lt;stddef.h&gt;</code> returns the byte offset of a member within a struct — invaluable for verifying that your packed struct matches the protocol's byte map.</p>
+
+    <h3>Unions</h3>
+    <p>A union overlays multiple members at the same memory address. The size of the union is the size of its largest member. Unions are commonly used for <em>type-punning</em> (viewing the same bytes as different types) and for telemetry packets with variable payloads.</p>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Padding demo — wasted space and reordering fix</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_padding.c — gcc -std=c99 -Wall ex_padding.c */
+#include &lt;stdint.h&gt;
+#include &lt;stddef.h&gt;
+#include &lt;stdio.h&gt;
+
+/* BAD: char-int-char causes 6 bytes of padding on 32-bit platforms */
+struct BadLayout {
+    char     a;      /* 1 byte at offset 0 */
+    /* 3 bytes padding to align 'b' to 4 */
+    uint32_t b;      /* 4 bytes at offset 4 */
+    char     c;      /* 1 byte at offset 8 */
+    /* 3 bytes tail padding to align struct size to 4 */
+};
+
+/* GOOD: Largest members first — no padding needed */
+struct GoodLayout {
+    uint32_t b;      /* 4 bytes at offset 0 */
+    char     a;      /* 1 byte at offset 4 */
+    char     c;      /* 1 byte at offset 5 */
+    /* 2 bytes tail padding to align to 4 */
+};
+
+/* WIRE: Packed — matches protocol exactly, no padding */
+struct __attribute__((packed)) WireLayout {
+    uint8_t  a;
+    uint32_t b;
+    uint8_t  c;
+};
+
+int main(void)
+{
+    printf("=== Struct sizes ===\n");
+    printf("BadLayout:  %zu bytes (wastes 6 bytes)\n",
+           sizeof(struct BadLayout));
+    printf("GoodLayout: %zu bytes (wastes 2 bytes)\n",
+           sizeof(struct GoodLayout));
+    printf("WireLayout: %zu bytes (no padding)\n",
+           sizeof(struct WireLayout));
+
+    printf("\n=== Member offsets of BadLayout ===\n");
+    printf("a: %zu  b: %zu  c: %zu\n",
+           offsetof(struct BadLayout, a),
+           offsetof(struct BadLayout, b),
+           offsetof(struct BadLayout, c));
+
+    printf("\n=== Member offsets of WireLayout ===\n");
+    printf("a: %zu  b: %zu  c: %zu\n",
+           offsetof(struct WireLayout, a),
+           offsetof(struct WireLayout, b),
+           offsetof(struct WireLayout, c));
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">CCSDS Primary Header — packed struct with bit-fields</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_ccsds_hdr.c — gcc -std=c99 -Wall ex_ccsds_hdr.c */
+#include &lt;stdint.h&gt;
+#include &lt;stddef.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+/*
+ * CCSDS Primary Header (CCSDS 133.0-B-2), 6 bytes big-endian:
+ *
+ *  Word 0 (16-bit): [15:13] Version=0b000  [12] Type(0=TLM,1=CMD)
+ *                   [11] SecHdrFlag=1  [10:0] APID
+ *  Word 1 (16-bit): [15:14] SeqFlags  [13:0] SeqCount
+ *  Word 2 (16-bit): PktDataLen = total_bytes - 7
+ */
+
+/* Raw byte representation — safest for cross-platform use */
+typedef struct __attribute__((packed)) {
+    uint8_t  stream_id_hi;   /* Byte 0: version[7:5] type[4] sec_hdr[3] apid[2:0] */
+    uint8_t  stream_id_lo;   /* Byte 1: apid[7:0] */
+    uint8_t  sequence_hi;    /* Byte 2: seq_flags[7:6] seq_count[5:0] */
+    uint8_t  sequence_lo;    /* Byte 3: seq_count[7:0] */
+    uint8_t  pkt_len_hi;     /* Byte 4: pkt_data_len[15:8] */
+    uint8_t  pkt_len_lo;     /* Byte 5: pkt_data_len[7:0] */
+} CCSDS_PriHdr_t;
+
+/* Helper macros to extract fields (big-endian wire bytes) */
+#define CCSDS_GET_TYPE(hdr)     (((hdr).stream_id_hi &gt;&gt; 4) &amp; 0x1U)
+#define CCSDS_GET_APID(hdr)     ((uint16_t)(((hdr).stream_id_hi &amp; 0x07U) &lt;&lt; 8) | \
+                                  (hdr).stream_id_lo)
+#define CCSDS_GET_SEQCNT(hdr)   ((uint16_t)(((hdr).sequence_hi &amp; 0x3FU) &lt;&lt; 8) | \
+                                  (hdr).sequence_lo)
+#define CCSDS_GET_PKTLEN(hdr)   ((uint16_t)((hdr).pkt_len_hi &lt;&lt; 8) | (hdr).pkt_len_lo)
+
+/* Build a CCSDS telemetry primary header */
+static void build_tlm_hdr(CCSDS_PriHdr_t *hdr, uint16_t apid,
+                           uint16_t seq_cnt, uint16_t pkt_data_len)
+{
+    /* Type=0 (TLM), SecHdrFlag=1, Version=0 */
+    hdr-&gt;stream_id_hi = (uint8_t)(0x08U | ((apid &gt;&gt; 8) &amp; 0x07U));
+    hdr-&gt;stream_id_lo = (uint8_t)(apid &amp; 0xFFU);
+    /* SeqFlags=0b11 (standalone), seq count */
+    hdr-&gt;sequence_hi  = (uint8_t)(0xC0U | ((seq_cnt &gt;&gt; 8) &amp; 0x3FU));
+    hdr-&gt;sequence_lo  = (uint8_t)(seq_cnt &amp; 0xFFU);
+    hdr-&gt;pkt_len_hi   = (uint8_t)((pkt_data_len &gt;&gt; 8) &amp; 0xFFU);
+    hdr-&gt;pkt_len_lo   = (uint8_t)(pkt_data_len &amp; 0xFFU);
+}
+
+int main(void)
+{
+    CCSDS_PriHdr_t hdr;
+    build_tlm_hdr(&amp;hdr, 0x07DU, 42U, 17U); /* APID=0x07D, seq=42, data_len=17 */
+
+    printf("CCSDS Primary Header (%zu bytes):\n", sizeof(hdr));
+    printf("  Raw bytes: ");
+    const uint8_t *raw = (const uint8_t*)&amp;hdr;
+    for (size_t i = 0; i &lt; sizeof(hdr); i++) {
+        printf("%02X ", raw[i]);
+    }
+    printf("\n");
+    printf("  Type       : %u (0=TLM)\n",    CCSDS_GET_TYPE(hdr));
+    printf("  APID       : 0x%03X\n",        CCSDS_GET_APID(hdr));
+    printf("  SeqCount   : %u\n",            CCSDS_GET_SEQCNT(hdr));
+    printf("  PktDataLen : %u\n",            CCSDS_GET_PKTLEN(hdr));
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 3 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Union for telemetry message with flexible payload</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_union.c — gcc -std=c99 -Wall ex_union.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+/* A telemetry packet whose payload interpretation depends on a type field */
+typedef struct __attribute__((packed)) {
+    uint8_t  type;    /* 0=temperature, 1=voltage, 2=raw */
+    union {
+        struct {
+            int16_t  celsius_x10;   /* temp * 10, so 235 = 23.5 C */
+            uint8_t  sensor_id;
+        } temp;
+        struct {
+            uint16_t millivolts;
+            uint8_t  rail_id;
+        } voltage;
+        uint8_t raw[3];             /* catch-all raw access */
+    } payload;
+} TlmPayload_t;
+
+static void print_tlm(const TlmPayload_t *p)
+{
+    switch (p-&gt;type) {
+        case 0:
+            printf("Temperature: %.1f C  Sensor=%u\n",
+                   p-&gt;payload.temp.celsius_x10 / 10.0,
+                   p-&gt;payload.temp.sensor_id);
+            break;
+        case 1:
+            printf("Voltage: %.3f V  Rail=%u\n",
+                   p-&gt;payload.voltage.millivolts / 1000.0,
+                   p-&gt;payload.voltage.rail_id);
+            break;
+        default:
+            printf("Raw bytes: %02X %02X %02X\n",
+                   p-&gt;payload.raw[0], p-&gt;payload.raw[1], p-&gt;payload.raw[2]);
+    }
+}
+
+/* Union for type-punning: view float bits as uint32 */
+static void show_float_bits(float f)
+{
+    union { float f; uint32_t u; } pun = { .f = f };
+    printf("%.6f  =  0x%08X\n", pun.f, pun.u);
+}
+
+int main(void)
+{
+    printf("sizeof(TlmPayload_t) = %zu\n\n", sizeof(TlmPayload_t));
+
+    TlmPayload_t p;
+
+    p.type = 0;
+    p.payload.temp.celsius_x10 = 235;  /* 23.5 C */
+    p.payload.temp.sensor_id   = 2;
+    print_tlm(&amp;p);
+
+    p.type = 1;
+    p.payload.voltage.millivolts = 3300;  /* 3.3 V */
+    p.payload.voltage.rail_id    = 0;
+    print_tlm(&amp;p);
+
+    printf("\nFloat bit patterns:\n");
+    show_float_bits(1.0f);
+    show_float_bits(-0.0f);
+    show_float_bits(3.14159f);
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Packed CCSDS Telecommand Struct &amp; Offsets</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Define a packed struct <code>MyCmd_t</code> for a CCSDS telecommand packet: 6-byte primary header, 1-byte function code, 1-byte checksum, and a 4-byte <code>uint32_t</code> parameter. Use <code>offsetof</code> to print each field's byte offset and verify the total size is exactly 12 bytes.</p>
+        <p><strong>Expected output:</strong></p>
+        <pre>sizeof(MyCmd_t)  = 12 bytes
+offsetof pri_hdr = 0
+offsetof fc      = 6
+offsetof checksum= 7
+offsetof param   = 8</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;stddef.h&gt;&#10;#include &lt;stdio.h&gt;&#10;&#10;/* TODO: Define uint8_t pri_hdr[6] packed struct for CCSDS telecommand */&#10;/* Use __attribute__((packed)) */&#10;typedef struct {&#10;    /* TODO: 6-byte primary header as uint8_t array */&#10;    /* TODO: function code (1 byte) */&#10;    /* TODO: checksum (1 byte) */&#10;    /* TODO: uint32_t parameter (4 bytes) */&#10;} MyCmd_t;&#10;&#10;int main(void)&#10;{&#10;    /* TODO: print sizeof and offsetof for each field */&#10;    printf(&quot;sizeof(MyCmd_t)  = %zu bytes\n&quot;, sizeof(MyCmd_t));&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;stddef.h&gt;
+#include &lt;stdio.h&gt;
+
+/* TODO: Define packed struct for a CCSDS telecommand packet */
+typedef struct {
+    /* TODO: 6-byte primary header */
+    /* TODO: function code */
+    /* TODO: checksum */
+    /* TODO: uint32_t parameter */
+} MyCmd_t;
+
+int main(void)
+{
+    printf("sizeof(MyCmd_t)  = %zu bytes\n", sizeof(MyCmd_t));
+    /* TODO: print offsetof for each field */
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What does <code>__attribute__((packed))</code> do to a struct?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Compresses the struct into a single machine word for faster access</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Makes all members read-only (like <code>const</code>)</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">Removes alignment padding between members so the struct layout matches the exact wire-format byte sequence</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Enables compiler optimizations by guaranteeing member alignment</div>
+      </div>
+      <div class="quiz-expl">Without <code>packed</code>, the compiler inserts padding bytes to align members for fast CPU access. <code>packed</code> eliminates all padding, making <code>offsetof(struct, member)</code> match the protocol's byte map exactly. The downside is potentially slower unaligned memory accesses on architectures that require alignment.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p2t1" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph2)"></span>PHASE 2</span>
+    <h2 class="sec-title">Deterministic Memory Management</h2>
+    <p class="sec-sub">Why flight software never calls malloc after init, and the static allocation patterns that replace it.</p>
+  </div>
+
+  <div class="theory">
+    <h3>The Golden Rule: No malloc After Init</h3>
+    <p>Dynamic heap allocation (<code>malloc</code>/<code>free</code>) is forbidden after system initialization in flight software because:</p>
+    <ul>
+      <li><strong>Non-deterministic timing:</strong> <code>malloc</code> may take microseconds or milliseconds depending on heap fragmentation. Real-time tasks have hard deadlines measured in microseconds.</li>
+      <li><strong>Heap fragmentation:</strong> After thousands of alloc/free cycles, the heap becomes fragmented. A request for 512 bytes may fail even when 10 KB is technically free.</li>
+      <li><strong>No recovery:</strong> In space, there is no operator to restart a process that ran out of heap memory. Allocation failure must be impossible at runtime.</li>
+    </ul>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      cFS Executive Services (CFE_ES) provides a <em>memory pool</em> API (<code>CFE_ES_PoolCreate</code>, <code>CFE_ES_GetPoolBuf</code>) built on a fixed static buffer with a deterministic allocator. Even this is used sparingly — most cFS apps use simple static global structs.
+    </div>
+
+    <h3>Static Allocation Strategies</h3>
+    <ul>
+      <li><strong>Global/static arrays:</strong> <code>static MyMsg_t g_MsgPool[MAX_MSGS]</code> — declared once, lives forever.</li>
+      <li><strong>Stack allocation:</strong> Local variables in a function. Be aware of stack size limits on the RTOS.</li>
+      <li><strong>Static local variables:</strong> <code>static</code> inside a function — initialized once, persists between calls.</li>
+    </ul>
+
+    <h3>Pool Allocator Pattern</h3>
+    <p>A pool allocator pre-allocates a fixed array of identically-sized objects and maintains a free-list. Allocation is O(1) and deterministic: pop one entry from the free-list. Free is O(1): push back to free-list.</p>
+
+    <h3>Ring Buffer (Circular Queue)</h3>
+    <p>A ring buffer is the standard structure for telemetry event logging in flight software. It uses two indices (head/tail) into a fixed array. When the buffer is full, the oldest entry is overwritten (or new entries are dropped — policy depends on mission). Access is O(1) with no dynamic allocation.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Always use <code>memset(ptr, 0, sizeof(*ptr))</code> to zero-initialize statically allocated objects before use. Uninitialized data is a leading cause of non-deterministic spacecraft anomalies.
+    </div>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Static object pool allocator</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_pool.c — gcc -std=c99 -Wall ex_pool.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+#define POOL_CAPACITY 8U
+
+/* The object type managed by the pool */
+typedef struct {
+    uint32_t msg_id;
+    uint8_t  data[16];
+    bool     in_use;
+} MsgObj_t;
+
+/* Pool state — all static, no heap */
+static MsgObj_t   g_pool[POOL_CAPACITY];
+static uint32_t   g_free_list[POOL_CAPACITY];  /* indices of free slots */
+static uint32_t   g_free_top = 0U;             /* stack top */
+
+/* Initialize pool — call once at startup */
+void Pool_Init(void)
+{
+    memset(g_pool, 0, sizeof(g_pool));
+    g_free_top = POOL_CAPACITY;
+    for (uint32_t i = 0; i &lt; POOL_CAPACITY; i++) {
+        g_free_list[i] = i;  /* all slots free */
+    }
+}
+
+/* Allocate one object — O(1), deterministic */
+MsgObj_t *Pool_Alloc(void)
+{
+    if (g_free_top == 0U) {
+        return NULL;  /* pool exhausted */
+    }
+    uint32_t idx = g_free_list[--g_free_top];
+    MsgObj_t *obj = &amp;g_pool[idx];
+    memset(obj, 0, sizeof(*obj));  /* always zero-init */
+    obj-&gt;in_use = true;
+    return obj;
+}
+
+/* Return object to pool — O(1), deterministic */
+bool Pool_Free(MsgObj_t *obj)
+{
+    if (obj == NULL) return false;
+
+    /* Find the index of this object in the pool array */
+    ptrdiff_t idx = obj - g_pool;
+    if (idx &lt; 0 || (uint32_t)idx &gt;= POOL_CAPACITY) {
+        return false;  /* not our object */
+    }
+    if (!obj-&gt;in_use) {
+        return false;  /* double-free guard */
+    }
+
+    obj-&gt;in_use = false;
+    g_free_list[g_free_top++] = (uint32_t)idx;
+    return true;
+}
+
+int main(void)
+{
+    Pool_Init();
+    printf("Pool capacity: %u\n\n", POOL_CAPACITY);
+
+    MsgObj_t *a = Pool_Alloc();
+    MsgObj_t *b = Pool_Alloc();
+    MsgObj_t *c = Pool_Alloc();
+
+    if (a) { a-&gt;msg_id = 100; printf("Allocated a: msg_id=%u\n", a-&gt;msg_id); }
+    if (b) { b-&gt;msg_id = 200; printf("Allocated b: msg_id=%u\n", b-&gt;msg_id); }
+    if (c) { c-&gt;msg_id = 300; printf("Allocated c: msg_id=%u\n", c-&gt;msg_id); }
+
+    printf("Free top: %u (after 3 allocs)\n\n", g_free_top);
+
+    Pool_Free(b);
+    printf("Freed b. Free top: %u\n", g_free_top);
+
+    MsgObj_t *d = Pool_Alloc();
+    if (d) printf("Re-allocated slot: msg_id=%u (was b's slot)\n\n", d-&gt;msg_id);
+
+    /* Exhaust the pool */
+    MsgObj_t *extra = NULL;
+    while ((extra = Pool_Alloc()) != NULL) { extra-&gt;msg_id = 999; }
+    printf("Pool exhausted — Pool_Alloc() returned NULL\n");
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Ring buffer (circular queue) for telemetry events</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_ringbuf.c — gcc -std=c99 -Wall ex_ringbuf.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+#define RB_CAPACITY 4U  /* power of 2 for efficient modulo */
+
+typedef struct {
+    uint32_t event_id;
+    char     message[32];
+} Event_t;
+
+typedef struct {
+    Event_t  buf[RB_CAPACITY];
+    uint32_t head;   /* next write position */
+    uint32_t tail;   /* next read position */
+    uint32_t count;  /* number of items currently in buffer */
+} RingBuf_t;
+
+static RingBuf_t g_evtbuf;
+
+void RB_Init(RingBuf_t *rb) {
+    memset(rb, 0, sizeof(*rb));
+}
+
+bool RB_IsFull(const RingBuf_t *rb)  { return rb-&gt;count == RB_CAPACITY; }
+bool RB_IsEmpty(const RingBuf_t *rb) { return rb-&gt;count == 0U; }
+
+/* Push: overwrites oldest if full (telemetry "overwrite" policy) */
+void RB_Push(RingBuf_t *rb, const Event_t *evt)
+{
+    if (RB_IsFull(rb)) {
+        /* Overwrite oldest: advance tail */
+        rb-&gt;tail = (rb-&gt;tail + 1U) % RB_CAPACITY;
+        rb-&gt;count--;
+        printf("  [RB WARN] Buffer full — oldest event dropped\n");
+    }
+    rb-&gt;buf[rb-&gt;head] = *evt;
+    rb-&gt;head = (rb-&gt;head + 1U) % RB_CAPACITY;
+    rb-&gt;count++;
+}
+
+bool RB_Pop(RingBuf_t *rb, Event_t *out)
+{
+    if (RB_IsEmpty(rb)) return false;
+    *out = rb-&gt;buf[rb-&gt;tail];
+    rb-&gt;tail = (rb-&gt;tail + 1U) % RB_CAPACITY;
+    rb-&gt;count--;
+    return true;
+}
+
+int main(void)
+{
+    RB_Init(&amp;g_evtbuf);
+
+    Event_t e;
+    for (uint32_t i = 1; i &lt;= 6; i++) {
+        e.event_id = i;
+        snprintf(e.message, sizeof(e.message), "Event #%u", i);
+        printf("Push %u (count before: %u)\n", i, g_evtbuf.count);
+        RB_Push(&amp;g_evtbuf, &amp;e);
+    }
+
+    printf("\nDraining ring buffer (count=%u):\n", g_evtbuf.count);
+    while (RB_Pop(&amp;g_evtbuf, &amp;e)) {
+        printf("  ID=%u  msg=\"%s\"\n", e.event_id, e.message);
+    }
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Fixed-Capacity Stack</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Implement a fixed-capacity stack (push/pop/is_full/is_empty) for <code>uint32_t</code> values using a static array of capacity 5. No dynamic allocation allowed.</p>
+        <p><strong>Expected output:</strong></p>
+        <pre>Pushed: 10 20 30 40 50
+Stack full: yes
+Popped: 50 40 30 20 10
+Stack empty: yes</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;stdbool.h&gt;&#10;#include &lt;stdio.h&gt;&#10;&#10;#define STACK_CAP 5U&#10;&#10;typedef struct {&#10;    uint32_t data[STACK_CAP];&#10;    uint32_t top; /* index of next free slot */&#10;} Stack_t;&#10;&#10;/* TODO: implement these functions */&#10;bool Stack_IsFull(const Stack_t *s)  { return false; }&#10;bool Stack_IsEmpty(const Stack_t *s) { return false; }&#10;bool Stack_Push(Stack_t *s, uint32_t val) { return false; }&#10;bool Stack_Pop(Stack_t *s, uint32_t *out) { return false; }&#10;&#10;int main(void)&#10;{&#10;    Stack_t stk = { .top = 0 };&#10;    uint32_t vals[] = {10, 20, 30, 40, 50};&#10;&#10;    printf(&quot;Pushed:&quot;);&#10;    for (int i = 0; i &lt; 5; i++) {&#10;        if (Stack_Push(&amp;stk, vals[i])) printf(&quot; %u&quot;, vals[i]);&#10;    }&#10;    printf(&quot;\nStack full: %s\n&quot;, Stack_IsFull(&amp;stk) ? &quot;yes&quot; : &quot;no&quot;);&#10;&#10;    printf(&quot;Popped:&quot;);&#10;    uint32_t v;&#10;    while (Stack_Pop(&amp;stk, &amp;v)) printf(&quot; %u&quot;, v);&#10;    printf(&quot;\nStack empty: %s\n&quot;, Stack_IsEmpty(&amp;stk) ? &quot;yes&quot; : &quot;no&quot;);&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;stdio.h&gt;
+
+#define STACK_CAP 5U
+
+typedef struct {
+    uint32_t data[STACK_CAP];
+    uint32_t top;
+} Stack_t;
+
+/* TODO: implement these functions */
+bool Stack_IsFull(const Stack_t *s)  { return false; }
+bool Stack_IsEmpty(const Stack_t *s) { return false; }
+bool Stack_Push(Stack_t *s, uint32_t val) { return false; }
+bool Stack_Pop(Stack_t *s, uint32_t *out) { return false; }
+
+int main(void)
+{
+    Stack_t stk = { .top = 0 };
+    uint32_t vals[] = {10, 20, 30, 40, 50};
+    printf("Pushed:");
+    for (int i = 0; i &lt; 5; i++) {
+        if (Stack_Push(&amp;stk, vals[i])) printf(" %u", vals[i]);
+    }
+    printf("\nStack full: %s\n", Stack_IsFull(&amp;stk) ? "yes" : "no");
+    printf("Popped:");
+    uint32_t v;
+    while (Stack_Pop(&amp;stk, &amp;v)) printf(" %u", v);
+    printf("\nStack empty: %s\n", Stack_IsEmpty(&amp;stk) ? "yes" : "no");
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What is the primary reason flight software avoids <code>malloc</code>/<code>free</code> after initialization?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)"><code>malloc</code> is not available in C99</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Static memory is always faster than heap memory</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">Non-deterministic execution time and the risk of heap fragmentation causing allocation failures during a mission-critical maneuver</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">MISRA C:2012 prohibits all use of the standard library</div>
+      </div>
+      <div class="quiz-expl"><code>malloc</code> on a fragmented heap can take an unpredictable amount of time and may fail even when sufficient total free memory exists. For a spacecraft performing orbital insertion burns, a millisecond delay or a NULL return at the wrong moment can be catastrophic. Static allocation guarantees O(1) deterministic access and eliminates the failure mode entirely.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p2t2" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph2)"></span>PHASE 2</span>
+    <h2 class="sec-title">Defensive Programming &amp; Error Handling</h2>
+    <p class="sec-sub">Status code conventions, always-check-return-values discipline, NASA's Power of 10 Rules, and MISRA C key rules.</p>
+  </div>
+
+  <div class="theory">
+    <h3>Status Code Conventions</h3>
+    <p>cFS uses <code>int32_t</code> (aliased <code>CFE_Status_t</code>) as a return type for nearly every API function. Convention: <strong>0 = CFE_SUCCESS</strong>, negative values = errors, positive values = warnings/informational. Error codes encode the service (high bits) and specific error (low bits), making them globally unique across all cFS modules.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Every function that can fail <strong>must</strong> have its return value checked. Ignoring a return value in flight software is a critical defect — it is the equivalent of ignoring a fire alarm. Use <code>-Wunused-result</code> to catch this at compile time.
+    </div>
+
+    <h3>NASA Power of 10 Rules</h3>
+    <p>Gerard Holzmann at JPL formulated 10 rules for safety-critical C code that eliminate the most common sources of embedded software defects:</p>
+
+    <ol class="rule-list">
+      <li><strong>No complex flow:</strong> Restrict to simple control flow — no <code>goto</code>, <code>setjmp</code>, <code>longjmp</code>, or direct/indirect recursion.</li>
+      <li><strong>Fixed upper bounds on loops:</strong> Every loop must have a statically verifiable iteration limit. No unbounded <code>while(1)</code> without a counter guard.</li>
+      <li><strong>No dynamic memory after init:</strong> No <code>malloc</code>/<code>free</code> after initialization. Use static or stack allocation only.</li>
+      <li><strong>No functions longer than 60 lines:</strong> Each function should fit on a single printed page. Long functions hide bugs.</li>
+      <li><strong>Two or fewer assertions per function:</strong> At least 2% of all lines should be assertions. Each assertion checks a condition that must always be true; failure is a programmer error.</li>
+      <li><strong>Minimum variable scope:</strong> Declare variables at the innermost possible scope. Avoid global state except where required.</li>
+      <li><strong>Check every return value:</strong> Every function return value must be checked, or the ignored value must be explicitly cast to <code>(void)</code> to signal intentional discard.</li>
+      <li><strong>Limit preprocessor use:</strong> Use <code>#include</code> and simple <code>#define</code> macros only. No token-pasting, variadic macros, or recursive macro expansion.</li>
+      <li><strong>Restrict pointer use:</strong> No more than one level of pointer dereference per expression. No function pointers (relaxed in cFS for dispatch tables — handled carefully).</li>
+      <li><strong>Compile warning-free:</strong> Code must compile with all warnings enabled (<code>-Wall -Wextra</code>) and zero warnings at the highest warning level, with <code>-Werror</code>.</li>
+    </ol>
+
+    <h3>Key MISRA C:2012 Rules</h3>
+    <ul>
+      <li><strong>Rule 15.5:</strong> A function should have a single point of exit.</li>
+      <li><strong>Rule 17.2:</strong> Functions shall not call themselves directly or indirectly (no recursion).</li>
+      <li><strong>Rule 14.2:</strong> A for-loop shall be well-formed (init; condition; increment only).</li>
+      <li><strong>Rule 11.3:</strong> A cast shall not be performed between a pointer to an object type and a pointer to a different object type.</li>
+      <li><strong>Rule 21.3:</strong> The memory allocation functions of <code>&lt;stdlib.h&gt;</code> shall not be used.</li>
+      <li><strong>Rule 16.4:</strong> Every <code>switch</code> statement shall have a <code>default</code> clause.</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <div class="callout-title">NOTE</div>
+      NASA JPL applies a strict subset of MISRA C:2012 plus their own Power of 10 rules via automated static analysis (Coverity, Polyspace). Code that violates these rules is blocked from integration.
+    </div>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">cFS-style function with full error checking and propagation</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_errcheck.c — gcc -std=c99 -Wall -Wextra ex_errcheck.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+/* ----- Error code definitions (mirroring cFS pattern) ----- */
+typedef int32_t Status_t;
+#define STATUS_SUCCESS       ((Status_t)0)
+#define STATUS_ERR_NULL_PTR  ((Status_t)-1)
+#define STATUS_ERR_BAD_LEN   ((Status_t)-2)
+#define STATUS_ERR_NOT_INIT  ((Status_t)-3)
+#define STATUS_ERR_OVERFLOW  ((Status_t)-4)
+
+/* ----- Module state ----- */
+typedef struct {
+    bool     initialized;
+    uint32_t msg_count;
+    uint8_t  buffer[256];
+    uint32_t buf_len;
+} Module_t;
+
+static Module_t g_mod;
+
+/* ----- Functions with proper error propagation ----- */
+Status_t Module_Init(void)
+{
+    memset(&amp;g_mod, 0, sizeof(g_mod));
+    g_mod.initialized = true;
+    printf("[INIT] Module initialized\n");
+    return STATUS_SUCCESS;
+}
+
+Status_t Module_WriteData(const uint8_t *data, uint32_t len)
+{
+    /* Rule: validate inputs before any operation */
+    if (data == NULL) {
+        printf("[ERR] WriteData: NULL pointer\n");
+        return STATUS_ERR_NULL_PTR;
+    }
+    if (len == 0U || len &gt; 128U) {
+        printf("[ERR] WriteData: invalid length %u\n", len);
+        return STATUS_ERR_BAD_LEN;
+    }
+    if (!g_mod.initialized) {
+        printf("[ERR] WriteData: module not initialized\n");
+        return STATUS_ERR_NOT_INIT;
+    }
+    if (g_mod.buf_len + len &gt; sizeof(g_mod.buffer)) {
+        printf("[ERR] WriteData: buffer overflow (%u + %u &gt; %zu)\n",
+               g_mod.buf_len, len, sizeof(g_mod.buffer));
+        return STATUS_ERR_OVERFLOW;
+    }
+
+    memcpy(&amp;g_mod.buffer[g_mod.buf_len], data, len);
+    g_mod.buf_len += len;
+    g_mod.msg_count++;
+    printf("[OK]  WriteData: wrote %u bytes (total=%u)\n", len, g_mod.buf_len);
+    return STATUS_SUCCESS;
+}
+
+/* Caller checks every return value */
+Status_t Module_RunTask(void)
+{
+    Status_t status;
+
+    status = Module_Init();
+    if (status != STATUS_SUCCESS) {
+        printf("[FATAL] Init failed: %d\n", status);
+        return status;  /* propagate up */
+    }
+
+    uint8_t payload1[] = {0x01, 0x02, 0x03, 0x04};
+    status = Module_WriteData(payload1, sizeof(payload1));
+    if (status != STATUS_SUCCESS) {
+        printf("[WARN] First write failed: %d\n", status);
+        /* non-fatal — continue */
+    }
+
+    /* Test NULL pointer error */
+    status = Module_WriteData(NULL, 4);
+    if (status != STATUS_SUCCESS) {
+        printf("[CAUGHT] Expected NULL error: %d\n", status);
+    }
+
+    /* Test length error */
+    status = Module_WriteData(payload1, 0);
+    if (status != STATUS_SUCCESS) {
+        printf("[CAUGHT] Expected length error: %d\n", status);
+    }
+
+    printf("\nFinal: msg_count=%u buf_len=%u\n",
+           g_mod.msg_count, g_mod.buf_len);
+    return STATUS_SUCCESS;
+}
+
+int main(void)
+{
+    Status_t result = Module_RunTask();
+    return (result == STATUS_SUCCESS) ? 0 : 1;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Error code enumeration with descriptive names</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_errcodes.c — gcc -std=c99 -Wall ex_errcodes.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+
+/* cFS encodes errors as: 0xSSEEEEEE where SS=service, EE=error number */
+#define MK_ERR(svc, num)  ((int32_t)(0x80000000 | ((svc) &lt;&lt; 16) | (num)))
+
+/* Service codes */
+#define SVC_SENSOR 0x01
+#define SVC_COMMS  0x02
+#define SVC_NAV    0x03
+
+/* Error codes per service */
+typedef enum {
+    SENSOR_OK              =  0,
+    SENSOR_ERR_NO_DATA     = MK_ERR(SVC_SENSOR, 0x01),
+    SENSOR_ERR_TIMEOUT     = MK_ERR(SVC_SENSOR, 0x02),
+    SENSOR_ERR_RANGE       = MK_ERR(SVC_SENSOR, 0x03),
+    SENSOR_ERR_CHECKSUM    = MK_ERR(SVC_SENSOR, 0x04),
+} SensorStatus_t;
+
+typedef enum {
+    COMMS_OK               =  0,
+    COMMS_ERR_NO_SIGNAL    = MK_ERR(SVC_COMMS, 0x01),
+    COMMS_ERR_BAD_PACKET   = MK_ERR(SVC_COMMS, 0x02),
+    COMMS_ERR_BUFFER_FULL  = MK_ERR(SVC_COMMS, 0x03),
+} CommsStatus_t;
+
+static const char *sensor_err_str(SensorStatus_t e)
+{
+    switch (e) {
+        case SENSOR_OK:           return "OK";
+        case SENSOR_ERR_NO_DATA:  return "No data available";
+        case SENSOR_ERR_TIMEOUT:  return "Sensor read timeout";
+        case SENSOR_ERR_RANGE:    return "Value out of valid range";
+        case SENSOR_ERR_CHECKSUM: return "Checksum mismatch";
+        default:                  return "Unknown error";
+    }
+}
+
+static const char *comms_err_str(CommsStatus_t e)
+{
+    switch (e) {
+        case COMMS_OK:              return "OK";
+        case COMMS_ERR_NO_SIGNAL:   return "No RF signal";
+        case COMMS_ERR_BAD_PACKET:  return "Malformed packet";
+        case COMMS_ERR_BUFFER_FULL: return "Transmit buffer full";
+        default:                    return "Unknown error";
+    }
+}
+
+int main(void)
+{
+    SensorStatus_t s_err = SENSOR_ERR_CHECKSUM;
+    CommsStatus_t  c_err = COMMS_ERR_BUFFER_FULL;
+
+    printf("Sensor error  0x%08X: %s\n", (uint32_t)s_err, sensor_err_str(s_err));
+    printf("Comms  error  0x%08X: %s\n", (uint32_t)c_err, comms_err_str(c_err));
+
+    /* Demonstrate generic check pattern */
+    int32_t result = (int32_t)SENSOR_ERR_TIMEOUT;
+    if (result != SENSOR_OK) {
+        printf("\nError check triggered: code=0x%08X\n", (uint32_t)result);
+    }
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Fix the Badly-Written Function</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>The function below ignores return values, doesn't check for NULL, and has no error propagation. Fix it to follow the defensive programming patterns above.</p>
+        <p><strong>Bugs to fix:</strong> NULL pointer dereference, ignored return values, no length validation, no error propagation.</p>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;string.h&gt;&#10;#include &lt;stdio.h&gt;&#10;&#10;/* BUGGY FUNCTION — fix it */&#10;/* Issues:&#10; *  1. Does not check if dst or src is NULL&#10; *  2. Does not validate len&#10; *  3. Ignores return value of memcpy (cast to void if intentional)&#10; *  4. No status code returned — caller cannot detect failure&#10; */&#10;void bad_copy(uint8_t *dst, const uint8_t *src, uint32_t len)&#10;{&#10;    memcpy(dst, src, len);  /* dangerous if dst/src NULL or len huge */&#10;    printf(&quot;Copied %u bytes\n&quot;, len);&#10;}&#10;&#10;int main(void)&#10;{&#10;    uint8_t buf[8];&#10;    uint8_t data[] = {1,2,3,4};&#10;    bad_copy(buf, data, sizeof(data));  /* works by luck */&#10;    bad_copy(NULL, data, sizeof(data)); /* crashes! */&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+/* BUGGY: fix this function */
+void bad_copy(uint8_t *dst, const uint8_t *src, uint32_t len)
+{
+    memcpy(dst, src, len);
+    printf("Copied %u bytes\n", len);
+}
+
+int main(void)
+{
+    uint8_t buf[8];
+    uint8_t data[] = {1,2,3,4};
+    bad_copy(buf, data, sizeof(data));
+    bad_copy(NULL, data, sizeof(data)); /* crashes! fix me */
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">According to NASA's Power of 10, what must every loop contain?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">A <code>break</code> statement to allow early exit</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">A fixed upper bound on the number of iterations that can be proven at compile time — preventing infinite loops in safety-critical code</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">An assertion checking the loop counter is non-negative</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">A comment explaining what the loop does</div>
+      </div>
+      <div class="quiz-expl">Power of Ten Rule 2: "All loops must have a fixed upper bound. It must be trivially possible for a checking tool to prove statically that the loop cannot exceed a preset upper bound on the number of iterations." A loop like <code>while (!done)</code> is forbidden — use <code>for (i = 0; i &lt; MAX_ITER &amp;&amp; !done; i++)</code> instead.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p2t3" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph2)"></span>PHASE 2</span>
+    <h2 class="sec-title">Hardware Modifiers: volatile, const, static</h2>
+    <p class="sec-sub">Qualifier keywords that control compiler optimization behavior, storage duration, and linkage — critical for hardware-interfacing flight code.</p>
+  </div>
+
+  <div class="theory">
+    <h3><code>volatile</code></h3>
+    <p>The <code>volatile</code> qualifier tells the compiler that a variable's value may change at any time outside normal program flow — e.g., from a hardware register, an interrupt service routine (ISR), or a DMA controller. Without it, the compiler may read the variable once, cache it in a CPU register, and never re-read memory, permanently missing updates.</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">WARNING</div>
+      <code>volatile</code> does <strong>NOT</strong> guarantee atomicity. A <code>volatile uint32_t</code> updated by an ISR can still be read mid-update on architectures where 32-bit writes are not atomic. Use <code>volatile</code> + disable interrupts, or <code>_Atomic</code> (C11), for true race-free access.
+    </div>
+
+    <p>Use <code>volatile</code> for:</p>
+    <ul>
+      <li>Memory-mapped hardware registers: <code>volatile uint32_t * const UART_DATA = (volatile uint32_t*)0x40001000;</code></li>
+      <li>Flags shared between an ISR and a task</li>
+      <li>Shared memory regions in multi-processor systems</li>
+    </ul>
+
+    <h3><code>const</code></h3>
+    <p>At file scope, <code>const</code> data is placed in the read-only data section (<code>.rodata</code>) by the linker. On embedded targets with ROM, it literally lives in non-writable flash. For function parameters, <code>const T *p</code> signals that the function will not modify the pointed-to data — enforced by the compiler.</p>
+
+    <h3><code>static</code></h3>
+    <p>Two distinct meanings depending on context:</p>
+    <ul>
+      <li><strong>At file scope:</strong> Internal linkage — the name is not visible outside the translation unit. Every cFS app module uses this to avoid symbol conflicts between apps in the same address space.</li>
+      <li><strong>Inside a function:</strong> The variable has static storage duration — it is initialized once and retains its value between calls. Useful for persistent counters and lazily-initialized state.</li>
+    </ul>
+
+    <h3><code>extern</code></h3>
+    <p>Declares a variable or function defined in another translation unit. Used to share a single global across multiple <code>.c</code> files. <em>Define in one .c file; declare <code>extern</code> in the shared header.</em></p>
+
+    <h3><code>restrict</code></h3>
+    <p>(C99) A hint to the compiler that a pointer is the <em>only</em> pointer that will access a memory region during its lifetime. Enables optimizations like vectorization. Used in <code>memcpy(restrict dst, restrict src, n)</code>.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-title">NOTE</div>
+      In cFS, every app wraps all its global state in a single struct (e.g., <code>MY_APP_GlobalData_t g_MyApp_Global</code>). The struct is declared <code>static</code> or kept in the app's own compilation unit, avoiding name collisions between apps loaded in the same process (in the POSIX/Linux simulator).
+    </div>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">volatile flag for ISR-to-task communication</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_volatile.c — demonstrates volatile behavior */
+/* gcc -std=c99 -Wall -O2 ex_volatile.c -o ex_volatile */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;stdio.h&gt;
+
+/*
+ * BAD: without volatile, the compiler at -O2 will hoist the read of
+ * g_bad_flag out of the loop entirely — the loop body becomes
+ * "if (false) { spin... }" and the task never wakes.
+ */
+static bool g_bad_flag  = false;
+
+/*
+ * GOOD: volatile forces re-read from memory on every loop iteration.
+ */
+static volatile bool g_isr_flag = false;
+
+/* Simulated ISR (in a real system this is called by the hardware timer) */
+void simulated_isr(void)
+{
+    /* ISR sets flag to wake main task */
+    g_isr_flag = true;
+    g_bad_flag  = true;  /* also set bad flag for demo */
+}
+
+/* Simulated memory-mapped register — 32-bit UART status register */
+#define UART_BASE_ADDR  0x40001000UL
+
+/* In real embedded code: volatile uint32_t * const UART_SR =
+ *     (volatile uint32_t *)UART_BASE_ADDR;
+ * Here we simulate it with a local volatile */
+static volatile uint32_t g_uart_sr = 0U;  /* bit 0 = TX ready */
+
+#define UART_SR_TXE (1U &lt;&lt; 0)  /* TX empty (ready to transmit) */
+
+static bool uart_is_tx_ready(void)
+{
+    /* Without volatile: compiler reads g_uart_sr once and caches forever */
+    /* With volatile: each call re-reads from memory */
+    return (g_uart_sr &amp; UART_SR_TXE) != 0U;
+}
+
+int main(void)
+{
+    /* Simulate ISR being triggered */
+    printf("Before ISR: g_isr_flag=%d  g_bad_flag=%d\n",
+           g_isr_flag, g_bad_flag);
+    simulated_isr();
+    printf("After  ISR: g_isr_flag=%d  g_bad_flag=%d\n",
+           g_isr_flag, g_bad_flag);
+
+    /* Check volatile flag — correctly sees the updated value */
+    if (g_isr_flag) {
+        printf("Task woke up correctly via volatile flag\n");
+        g_isr_flag = false;  /* acknowledge */
+    }
+
+    /* Simulate hardware setting TX ready bit */
+    g_uart_sr |= UART_SR_TXE;
+    printf("\nUART TX ready: %s\n", uart_is_tx_ready() ? "YES" : "NO");
+
+    /* Clear the bit (like hardware does after transmit completes) */
+    g_uart_sr &amp;= ~UART_SR_TXE;
+    printf("UART TX ready after clear: %s\n", uart_is_tx_ready() ? "YES" : "NO");
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">const correctness — telemetry getter with const params</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_const.c — gcc -std=c99 -Wall ex_const.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;stddef.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+/* Telemetry packet — const fields at the bottom are in ROM on embedded */
+typedef struct {
+    uint16_t apid;
+    uint16_t seq_count;
+    float    temperature_c;
+    float    battery_v;
+    uint32_t uptime_s;
+} HkTlm_t;
+
+/* const table of APID descriptions — lives in .rodata, never modified */
+static const struct { uint16_t apid; const char *name; } k_apid_table[] = {
+    { 0x100, "HK_APP" },
+    { 0x101, "SENSOR_APP" },
+    { 0x102, "COMMS_APP" },
+};
+
+/* Function takes const HkTlm_t* — guarantees it won't modify the packet */
+static void print_hk(const HkTlm_t *pkt)
+{
+    /* pkt->apid = 0;  -- compile error: modifying const-pointed-to data */
+    printf("APID=0x%03X seq=%u temp=%.1fC batt=%.2fV up=%us\n",
+           pkt-&gt;apid, pkt-&gt;seq_count,
+           pkt-&gt;temperature_c, pkt-&gt;battery_v, pkt-&gt;uptime_s);
+}
+
+/* const function pointer table */
+typedef void (*PrintFn_t)(const HkTlm_t *);
+static const PrintFn_t k_printers[] = { print_hk, print_hk };
+
+/* Lookup APID name from const table */
+static const char *apid_name(uint16_t apid)
+{
+    for (size_t i = 0; i &lt; sizeof(k_apid_table)/sizeof(k_apid_table[0]); i++) {
+        if (k_apid_table[i].apid == apid) {
+            return k_apid_table[i].name;  /* pointer into .rodata — safe */
+        }
+    }
+    return "UNKNOWN";
+}
+
+int main(void)
+{
+    HkTlm_t hk = {
+        .apid          = 0x100,
+        .seq_count     = 42,
+        .temperature_c = 23.5f,
+        .battery_v     = 3.72f,
+        .uptime_s      = 3600
+    };
+
+    print_hk(&amp;hk);
+    printf("APID name: %s\n", apid_name(hk.apid));
+
+    /* Call through const function pointer table */
+    k_printers[0](&amp;hk);
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 3 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">static module state — the cFS app global data struct pattern</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_static.c — gcc -std=c99 -Wall ex_static.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+/*
+ * cFS pattern: ALL global state for an app lives in ONE struct.
+ * The struct is declared static at file scope — not visible to
+ * other apps/modules, preventing name collisions in the shared
+ * POSIX process used by the cFS simulator.
+ */
+typedef struct {
+    bool     initialized;
+    uint32_t cmd_count;
+    uint32_t err_count;
+    uint32_t hk_period_ms;
+} MY_APP_GlobalData_t;
+
+/* Single static instance — internal linkage, module-private */
+static MY_APP_GlobalData_t g_MyApp;
+
+void MY_APP_Init(void)
+{
+    memset(&amp;g_MyApp, 0, sizeof(g_MyApp));
+    g_MyApp.hk_period_ms = 1000U;
+    g_MyApp.initialized  = true;
+    printf("[MY_APP] Initialized. HK period = %u ms\n",
+           g_MyApp.hk_period_ms);
+}
+
+void MY_APP_ProcessCmd(void)
+{
+    if (!g_MyApp.initialized) {
+        g_MyApp.err_count++;
+        return;
+    }
+    g_MyApp.cmd_count++;
+    printf("[MY_APP] Command processed. count=%u\n", g_MyApp.cmd_count);
+}
+
+/* static local variable — persists between calls, not visible outside function */
+void MY_APP_HkTick(void)
+{
+    static uint32_t s_tick = 0U;   /* initialized once, survives calls */
+    s_tick++;
+    printf("[MY_APP] HK tick #%u\n", s_tick);
+}
+
+int main(void)
+{
+    MY_APP_Init();
+    MY_APP_ProcessCmd();
+    MY_APP_ProcessCmd();
+    MY_APP_HkTick();
+    MY_APP_HkTick();
+    MY_APP_HkTick();
+
+    printf("\nFinal state: cmds=%u errs=%u\n",
+           g_MyApp.cmd_count, g_MyApp.err_count);
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Add Correct Qualifiers</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Add the correct qualifiers (<code>volatile</code>, <code>const</code>, <code>static</code>) to each declaration marked with <code>/* TODO */</code>. Explain each choice in a comment.</p>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;stdio.h&gt;&#10;&#10;/* TODO: This is a hardware UART data register — add correct qualifier */&#10;uint32_t *UART_DR = (uint32_t*)0x40001000;&#10;&#10;/* TODO: This flag is set by an ISR and read by main task */&#10;uint8_t g_isr_fired = 0;&#10;&#10;/* TODO: This lookup table should never change at runtime */&#10;uint32_t g_apid_list[] = {0x100, 0x101, 0x102};&#10;&#10;/* TODO: This function is private to this module — restrict its visibility */&#10;void helper_func(void)&#10;{&#10;    printf(&quot;helper called\n&quot;);&#10;}&#10;&#10;/* TODO: This counter should persist across calls but not be global */&#10;void tick(void)&#10;{&#10;    uint32_t count = 0; /* wrong — resets every call */&#10;    count++;&#10;    printf(&quot;tick %u\n&quot;, count);&#10;}&#10;&#10;int main(void) {&#10;    tick(); tick(); tick();&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+
+/* TODO: hardware UART data register */
+uint32_t *UART_DR = (uint32_t*)0x40001000;
+
+/* TODO: ISR flag shared with main task */
+uint8_t g_isr_fired = 0;
+
+/* TODO: lookup table, never changes at runtime */
+uint32_t g_apid_list[] = {0x100, 0x101, 0x102};
+
+/* TODO: private to this module */
+void helper_func(void) { printf("helper called\n"); }
+
+/* TODO: counter that persists across calls */
+void tick(void)
+{
+    uint32_t count = 0; /* resets every call — fix me */
+    count++;
+    printf("tick %u\n", count);
+}
+
+int main(void) { tick(); tick(); tick(); return 0; }</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What happens if a variable shared between an ISR and a main task is NOT declared <code>volatile</code>?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The program crashes immediately with a segfault</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The ISR cannot write to non-volatile variables</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">The compiler may cache the variable in a register and never re-read from memory, causing the main task to see a permanently stale value even after the ISR updates it</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The variable's value is automatically synchronized by the CPU cache coherence protocol</div>
+      </div>
+      <div class="quiz-expl">At optimization levels -O1 and above, the compiler analyzes data flow and may determine that a variable is never modified within the main task's code path — which is true! The ISR modifies it, but the compiler doesn't know about ISRs. Without <code>volatile</code>, the compiler replaces repeated reads with a single register load, and the main task loops forever seeing the pre-ISR value.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p3t1" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph3)"></span>PHASE 3</span>
+    <h2 class="sec-title">Concurrency &amp; Thread Safety</h2>
+    <p class="sec-sub">Race conditions, mutexes, semaphores, priority inversion, deadlock, reentrant functions, and C11 atomics.</p>
+  </div>
+
+  <div class="theory">
+    <h3>RTOS Tasks vs POSIX Threads</h3>
+    <p>cFS apps run as RTOS tasks on VxWorks/RTEMS, or as POSIX threads in the Linux simulator. Each task has a priority and a time-slice. The RTOS preempts a lower-priority task whenever a higher-priority task becomes ready. This preemption can happen between any two C statements — even between loading and storing a 32-bit integer on some architectures.</p>
+
+    <h3>Race Conditions</h3>
+    <p>A race condition occurs when two tasks access shared data concurrently and the final result depends on the timing of their execution. The classic example: two tasks increment a shared counter. If both read the value (5), both add 1, and both write (6), the counter is 6 instead of 7. On a spacecraft that lost track of 1 command out of every million, this is mission-critical.</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">WARNING</div>
+      Race conditions in flight software can cause silent data corruption that only manifests during rare timing windows — possibly during the most critical mission phase. Static analysis cannot always detect them. Formal proof or rigorous design discipline is required.
+    </div>
+
+    <h3>Mutual Exclusion</h3>
+    <p>A <strong>mutex</strong> (mutual exclusion lock) ensures only one task holds the lock at a time. Other tasks that call <code>lock()</code> block until the lock is released. In OSAL (the OS Abstraction Layer used by cFS): <code>OS_MutSemCreate</code>, <code>OS_MutSemTake</code>, <code>OS_MutSemGive</code>.</p>
+
+    <h3>Semaphores</h3>
+    <ul>
+      <li><strong>Binary semaphore:</strong> Two states (0/1). Used for signaling — one task gives, another takes (waits). Like a door lock used as a doorbell.</li>
+      <li><strong>Counting semaphore:</strong> Counts N available resources. Give increments, Take decrements; blocks at 0.</li>
+      <li><strong>Mutex:</strong> A binary semaphore with ownership — only the task that locked it can unlock it, enabling priority inheritance.</li>
+    </ul>
+
+    <h3>Priority Inversion</h3>
+    <p>Priority inversion: a high-priority task (H) waits for a mutex held by a low-priority task (L). A medium-priority task (M) preempts L. H is now blocked behind M — effectively, M runs at higher priority than H. The Mars Pathfinder mission experienced this bug in 1997. <strong>Priority inheritance</strong> (available in POSIX mutexes with <code>PTHREAD_PRIO_INHERIT</code>) temporarily raises L's priority to H's while L holds the mutex.</p>
+
+    <h3>Deadlock</h3>
+    <p>Deadlock occurs when four conditions hold simultaneously: (1) mutual exclusion, (2) hold-and-wait, (3) no preemption of locks, (4) circular wait. Prevention: always acquire locks in a globally consistent order (e.g., always lock A before B, never B before A). Alternatively, use try-lock with timeout and back off.</p>
+
+    <h3>Reentrant Functions</h3>
+    <p>A function is reentrant if it produces correct results when called concurrently from multiple tasks. Requirements: no static/global state modification, no calls to non-reentrant library functions. Use only local variables or parameters.</p>
+
+    <h3>C11 <code>_Atomic</code></h3>
+    <p>C11 provides <code>&lt;stdatomic.h&gt;</code> with atomic types (<code>atomic_int</code>, <code>atomic_uint32_t</code>) and operations (<code>atomic_load</code>, <code>atomic_store</code>, <code>atomic_fetch_add</code>) that guarantee atomicity without mutexes for simple scalar updates.</p>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Race condition demo then mutex-protected fix</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_mutex.c — gcc -std=c99 -Wall -pthread ex_mutex.c -o ex_mutex */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;pthread.h&gt;
+
+#define NUM_THREADS  4
+#define INCREMENTS   100000
+
+/* ---- UNSAFE counter (race condition) ---- */
+static volatile uint32_t g_unsafe_counter = 0U;
+
+static void *unsafe_thread(void *arg)
+{
+    (void)arg;
+    for (int i = 0; i &lt; INCREMENTS; i++) {
+        g_unsafe_counter++;  /* NOT atomic: read-modify-write race */
+    }
+    return NULL;
+}
+
+/* ---- SAFE counter (mutex protected) ---- */
+static uint32_t         g_safe_counter = 0U;
+static pthread_mutex_t  g_mutex        = PTHREAD_MUTEX_INITIALIZER;
+
+static void *safe_thread(void *arg)
+{
+    (void)arg;
+    for (int i = 0; i &lt; INCREMENTS; i++) {
+        pthread_mutex_lock(&amp;g_mutex);
+        g_safe_counter++;   /* protected: no race */
+        pthread_mutex_unlock(&amp;g_mutex);
+    }
+    return NULL;
+}
+
+static void run_test(const char *label,
+                     void *(*fn)(void*),
+                     uint32_t *counter)
+{
+    pthread_t threads[NUM_THREADS];
+    *counter = 0U;
+
+    for (int i = 0; i &lt; NUM_THREADS; i++) {
+        pthread_create(&amp;threads[i], NULL, fn, NULL);
+    }
+    for (int i = 0; i &lt; NUM_THREADS; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    uint32_t expected = (uint32_t)(NUM_THREADS * INCREMENTS);
+    printf("%-10s expected=%u  got=%u  %s\n",
+           label, expected, *counter,
+           *counter == expected ? "OK" : "LOST UPDATES (race!)");
+}
+
+int main(void)
+{
+    printf("=== Concurrency Demo: %d threads x %d increments ===\n\n",
+           NUM_THREADS, INCREMENTS);
+    run_test("UNSAFE:", unsafe_thread, &amp;g_unsafe_counter);
+    run_test("SAFE:  ", safe_thread,   &amp;g_safe_counter);
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">OSAL semaphore API usage (cFS-style)</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/*
+ * ex_osal_sem.c — OSAL semaphore API (conceptual; requires cFS OSAL headers)
+ * For compilation without cFS, this shows the API pattern with comments.
+ * Real OSAL API: OS_BinSemCreate, OS_BinSemGive, OS_BinSemTake
+ */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+
+/* OSAL types (simulated for standalone compile) */
+typedef uint32_t osal_id_t;
+typedef int32_t  OS_Status;
+#define OS_SUCCESS 0
+#define OS_SEM_TIMEOUT (-2)
+#define OS_PEND       0   /* wait forever */
+#define OS_CHECK      1   /* return immediately */
+
+/* Simulated OSAL semaphore state */
+static int g_sem_value = 0;
+
+OS_Status OS_BinSemCreate(osal_id_t *sem_id, const char *name,
+                          uint32_t initial_value, uint32_t options)
+{
+    (void)name; (void)options;
+    *sem_id = 1001;
+    g_sem_value = (int)initial_value;
+    printf("[OSAL] BinSemCreate: id=%u initial=%u\n", *sem_id, initial_value);
+    return OS_SUCCESS;
+}
+
+OS_Status OS_BinSemGive(osal_id_t sem_id)
+{
+    (void)sem_id;
+    g_sem_value = 1;  /* binary: max value 1 */
+    printf("[OSAL] BinSemGive: semaphore signaled\n");
+    return OS_SUCCESS;
+}
+
+OS_Status OS_BinSemTake(osal_id_t sem_id)
+{
+    (void)sem_id;
+    if (g_sem_value &gt; 0) {
+        g_sem_value = 0;
+        printf("[OSAL] BinSemTake: acquired semaphore\n");
+        return OS_SUCCESS;
+    }
+    printf("[OSAL] BinSemTake: would block (sem=0)\n");
+    return OS_SEM_TIMEOUT;  /* simplified: return timeout instead of blocking */
+}
+
+OS_Status OS_MutSemCreate(osal_id_t *mut_id, const char *name, uint32_t opts)
+{
+    (void)name; (void)opts;
+    *mut_id = 2001;
+    printf("[OSAL] MutSemCreate: id=%u\n", *mut_id);
+    return OS_SUCCESS;
+}
+
+/*
+ * Typical cFS app pattern:
+ *   At init:    OS_BinSemCreate(&g_WakeSem, "APP_WAKE", 0, 0)
+ *   Timer ISR:  OS_BinSemGive(g_WakeSem)      -- wake the app task
+ *   App task:   OS_BinSemTake(g_WakeSem)       -- block until woken
+ *               ... process data ...
+ */
+int main(void)
+{
+    osal_id_t wake_sem;
+    osal_id_t data_mutex;
+    OS_Status status;
+
+    printf("=== OSAL Semaphore Pattern ===\n\n");
+
+    /* Initialize */
+    status = OS_BinSemCreate(&amp;wake_sem, "APP_WAKE", 0, 0);
+    if (status != OS_SUCCESS) {
+        printf("FATAL: sem create failed %d\n", status);
+        return 1;
+    }
+
+    status = OS_MutSemCreate(&amp;data_mutex, "DATA_MUT", 0);
+    if (status != OS_SUCCESS) {
+        printf("FATAL: mutex create failed %d\n", status);
+        return 1;
+    }
+
+    printf("\n--- Simulated timer fires ---\n");
+    OS_BinSemGive(wake_sem);   /* Timer ISR or timer callback gives the sem */
+
+    printf("\n--- App task wakes up ---\n");
+    status = OS_BinSemTake(wake_sem);
+    if (status == OS_SUCCESS) {
+        printf("App task running: processing data...\n");
+    }
+
+    printf("\n--- Try to take empty semaphore ---\n");
+    OS_BinSemTake(wake_sem);   /* would block in real RTOS */
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 3 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Reentrant vs non-reentrant function comparison</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_reentrant.c — gcc -std=c99 -Wall ex_reentrant.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+/* ---- NON-REENTRANT: static buffer shared across all callers ---- */
+static char g_convert_buf[32];  /* single shared buffer — BAD! */
+
+const char *nonreentrant_hex(uint32_t val)
+{
+    /* If two tasks call this simultaneously, they both write g_convert_buf.
+     * The first caller's result is destroyed before it can use it. */
+    snprintf(g_convert_buf, sizeof(g_convert_buf), "0x%08X", val);
+    return g_convert_buf;  /* pointer into static buffer */
+}
+
+/* ---- REENTRANT: caller provides buffer — each call has its own ---- */
+char *reentrant_hex(uint32_t val, char *buf, size_t bufsz)
+{
+    /* Only uses parameters and local variables — fully reentrant */
+    snprintf(buf, bufsz, "0x%08X", val);
+    return buf;
+}
+
+/* ---- Non-reentrant problem demo ---- */
+static void demo_nonreentrant(void)
+{
+    /* Simulate two tasks calling in quick succession */
+    const char *p1 = nonreentrant_hex(0xDEADBEEF);
+    /* If task 2 preempts here and calls nonreentrant_hex(0xCAFEBABE),
+     * p1 now points to "0xCAFEBABE" -- task 1 prints wrong value! */
+    const char *p2 = nonreentrant_hex(0xCAFEBABE);
+    printf("p1=%s  p2=%s  (p1 was overwritten!)\n", p1, p2);
+}
+
+static void demo_reentrant(void)
+{
+    char buf1[16], buf2[16];
+    /* Each call writes to its own buffer — safe for concurrent calls */
+    const char *p1 = reentrant_hex(0xDEADBEEF, buf1, sizeof(buf1));
+    const char *p2 = reentrant_hex(0xCAFEBABE, buf2, sizeof(buf2));
+    printf("p1=%s  p2=%s  (both correct)\n", p1, p2);
+}
+
+int main(void)
+{
+    printf("Non-reentrant: ");
+    demo_nonreentrant();
+    printf("Reentrant:     ");
+    demo_reentrant();
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Fix the Race Condition</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>The code below has a shared counter incremented by two threads without synchronization. Add a <code>pthread_mutex_t</code> to protect it. The final counter value should always be exactly 200000.</p>
+        <p><strong>Expected output (after fix):</strong></p>
+        <pre>Final counter: 200000 (expected 200000) — OK</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;stdio.h&gt;&#10;#include &lt;pthread.h&gt;&#10;&#10;#define INCREMENTS 100000&#10;&#10;/* TODO: Add a mutex here */&#10;static volatile uint32_t g_counter = 0;&#10;&#10;static void *worker(void *arg)&#10;{&#10;    (void)arg;&#10;    for (int i = 0; i &lt; INCREMENTS; i++) {&#10;        /* TODO: lock mutex */&#10;        g_counter++;  /* RACE CONDITION — fix with mutex */&#10;        /* TODO: unlock mutex */&#10;    }&#10;    return NULL;&#10;}&#10;&#10;int main(void)&#10;{&#10;    pthread_t t1, t2;&#10;    /* TODO: initialize mutex */&#10;    pthread_create(&amp;t1, NULL, worker, NULL);&#10;    pthread_create(&amp;t2, NULL, worker, NULL);&#10;    pthread_join(t1, NULL);&#10;    pthread_join(t2, NULL);&#10;    uint32_t expected = 2 * INCREMENTS;&#10;    printf(&quot;Final counter: %u (expected %u) — %s\n&quot;,&#10;           g_counter, expected,&#10;           g_counter == expected ? &quot;OK&quot; : &quot;RACE DETECTED&quot;);&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;pthread.h&gt;
+
+#define INCREMENTS 100000
+
+/* TODO: Add mutex */
+static volatile uint32_t g_counter = 0;
+
+static void *worker(void *arg)
+{
+    (void)arg;
+    for (int i = 0; i &lt; INCREMENTS; i++) {
+        /* TODO: lock */
+        g_counter++;
+        /* TODO: unlock */
+    }
+    return NULL;
+}
+
+int main(void)
+{
+    pthread_t t1, t2;
+    /* TODO: init mutex */
+    pthread_create(&amp;t1, NULL, worker, NULL);
+    pthread_create(&amp;t2, NULL, worker, NULL);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    uint32_t expected = 2 * INCREMENTS;
+    printf("Final counter: %u (expected %u) — %s\n",
+           g_counter, expected,
+           g_counter == expected ? "OK" : "RACE DETECTED");
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">Which scenario correctly describes <strong>priority inversion</strong>?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">A high-priority task preempts a low-priority task that is running in a critical section</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">A high-priority task is blocked waiting for a mutex held by a low-priority task; a medium-priority task preempts the low-priority task, so the high-priority task is effectively blocked behind the medium one</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Two equal-priority tasks deadlock waiting for each other's mutexes</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">A task's priority is raised above the scheduler's highest level</div>
+      </div>
+      <div class="quiz-expl">Priority inversion was famously encountered in the Mars Pathfinder mission (1997). The fix was to enable priority inheritance on the mutex: while the low-priority task L holds the mutex needed by high-priority task H, L's priority is temporarily raised to H's level so no medium-priority task can preempt L. POSIX provides this via <code>pthread_mutexattr_setprotocol(attr, PTHREAD_PRIO_INHERIT)</code>.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p3t2" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph3)"></span>PHASE 3</span>
+    <h2 class="sec-title">Inter-Task Communication (IPC)</h2>
+    <p class="sec-sub">POSIX message queues, OSAL queue APIs, producer-consumer pattern, and how cFS Software Bus abstracts all of this.</p>
+  </div>
+
+  <div class="theory">
+    <h3>The cFS Software Bus as the Primary IPC</h3>
+    <p>In cFS, the <strong>Software Bus (SB)</strong> is the primary IPC mechanism. Apps publish messages to the bus without knowing which other apps subscribe. This decouples apps — you can add, remove, or replace an app without modifying senders. Under the hood, the SB uses OS message queues (OSAL queues) and copies messages into subscriber pipes.</p>
+
+    <h3>POSIX Message Queues</h3>
+    <p>POSIX MQs (<code>&lt;mqueue.h&gt;</code>) provide kernel-managed FIFO queues of fixed maximum message size. Key operations:</p>
+    <ul>
+      <li><code>mq_open(name, flags, mode, attr)</code> — create/open a named queue</li>
+      <li><code>mq_send(mqd, msg, len, priority)</code> — enqueue a message</li>
+      <li><code>mq_receive(mqd, buf, len, priority)</code> — dequeue (blocks if empty)</li>
+      <li><code>mq_timedreceive</code> — dequeue with timeout (preferred in flight SW)</li>
+      <li><code>mq_close</code> / <code>mq_unlink</code> — cleanup</li>
+    </ul>
+
+    <h3>OSAL Queue API</h3>
+    <p>OSAL wraps OS-specific queues with a portable API: <code>OS_QueueCreate</code>, <code>OS_QueuePut</code>, <code>OS_QueueGet</code>. cFS SB pipes are built on OSAL queues internally.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Always use <code>mq_timedreceive</code> (or OSAL's timeout equivalent) rather than blocking forever. Flight software tasks must be able to wake up periodically to perform housekeeping, check watchdog timers, and remain responsive to commands even when no data is flowing.
+    </div>
+
+    <h3>Producer-Consumer Pattern</h3>
+    <p>One or more <em>producers</em> generate data and enqueue it. One or more <em>consumers</em> dequeue and process it. The queue acts as a buffer that decouples their rates. In cFS: sensor apps produce telemetry packets (publish to SB), and the telemetry output app consumes and downlinks them.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-title">NOTE</div>
+      Non-blocking send (<code>O_NONBLOCK</code> or <code>OS_CHECK</code> in OSAL) returns immediately with an error if the queue is full. Blocking with timeout (<code>OS_PEND</code>) waits up to a deadline. Choose based on whether a full queue is a mission-critical error or a recoverable condition.
+    </div>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">POSIX message queue producer-consumer</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_mqueue.c — gcc -std=c99 -Wall -pthread ex_mqueue.c -lrt */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;mqueue.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;time.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;errno.h&gt;
+
+#define QUEUE_NAME  "/cfs_ipc_demo"
+#define MSG_SIZE    32U
+#define QUEUE_DEPTH 8U
+#define NUM_MSGS    5
+
+typedef struct {
+    uint32_t msg_id;
+    char     text[28];
+} Msg_t;
+
+static void *producer_thread(void *arg)
+{
+    (void)arg;
+    mqd_t mq = mq_open(QUEUE_NAME, O_WRONLY);
+    if (mq == (mqd_t)-1) { perror("mq_open producer"); return NULL; }
+
+    for (int i = 0; i &lt; NUM_MSGS; i++) {
+        Msg_t m;
+        m.msg_id = (uint32_t)i;
+        snprintf(m.text, sizeof(m.text), "TLM packet #%d", i);
+        if (mq_send(mq, (const char*)&amp;m, sizeof(m), 0) == -1) {
+            perror("mq_send");
+        } else {
+            printf("[PROD] Sent: id=%u text=\"%s\"\n", m.msg_id, m.text);
+        }
+    }
+    mq_close(mq);
+    return NULL;
+}
+
+static void *consumer_thread(void *arg)
+{
+    (void)arg;
+    mqd_t mq = mq_open(QUEUE_NAME, O_RDONLY);
+    if (mq == (mqd_t)-1) { perror("mq_open consumer"); return NULL; }
+
+    struct timespec ts;
+    for (int i = 0; i &lt; NUM_MSGS; i++) {
+        Msg_t m;
+        /* Use timed receive — don't block forever */
+        clock_gettime(CLOCK_REALTIME, &amp;ts);
+        ts.tv_sec += 2;  /* 2-second timeout */
+        ssize_t n = mq_timedreceive(mq, (char*)&amp;m, sizeof(m), NULL, &amp;ts);
+        if (n == -1) {
+            perror("mq_timedreceive");
+        } else {
+            printf("[CONS] Recv: id=%u text=\"%s\"\n", m.msg_id, m.text);
+        }
+    }
+    mq_close(mq);
+    return NULL;
+}
+
+int main(void)
+{
+    struct mq_attr attr = {
+        .mq_flags   = 0,
+        .mq_maxmsg  = QUEUE_DEPTH,
+        .mq_msgsize = sizeof(Msg_t),
+        .mq_curmsgs = 0
+    };
+
+    mq_unlink(QUEUE_NAME);  /* clean up from previous run */
+    mqd_t mq = mq_open(QUEUE_NAME, O_CREAT | O_RDWR, 0600, &amp;attr);
+    if (mq == (mqd_t)-1) { perror("mq_open create"); return 1; }
+    mq_close(mq);
+
+    pthread_t prod, cons;
+    pthread_create(&amp;cons, NULL, consumer_thread, NULL);
+    pthread_create(&amp;prod, NULL, producer_thread, NULL);
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    mq_unlink(QUEUE_NAME);
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">OSAL queue API — OS_QueueCreate / OS_QueuePut / OS_QueueGet</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/*
+ * ex_osal_queue.c — OSAL queue API (simulated for standalone build)
+ * Real signatures from OSAL osapi-queue.h:
+ *
+ * OS_Status OS_QueueCreate(osal_id_t *queue_id, const char *queue_name,
+ *                          osal_blockcount_t queue_depth,
+ *                          size_t data_size, uint32 flags);
+ *
+ * OS_Status OS_QueuePut(osal_id_t queue_id, const void *data,
+ *                       size_t size, uint32 flags);
+ *
+ * OS_Status OS_QueueGet(osal_id_t queue_id, void *data, size_t size,
+ *                       size_t *size_copied, int32 timeout);
+ */
+#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+/* ---- Simulated OSAL types ---- */
+typedef uint32_t osal_id_t;
+typedef uint32_t osal_blockcount_t;
+typedef int32_t  OS_Status;
+#define OS_SUCCESS   0
+#define OS_ERR_FULL  (-3)
+#define OS_ERR_EMPTY (-4)
+#define OS_PEND      (-1)  /* wait forever */
+#define OS_CHECK      0    /* return immediately */
+
+#define MAX_Q_DEPTH 8
+#define MSG_SZ      32
+
+/* ---- Simulated queue backing store ---- */
+static uint8_t  g_q_store[MAX_Q_DEPTH][MSG_SZ];
+static uint32_t g_q_head = 0, g_q_tail = 0, g_q_count = 0;
+
+OS_Status OS_QueueCreate(osal_id_t *qid, const char *name,
+                         osal_blockcount_t depth, size_t data_size,
+                         uint32_t flags)
+{
+    (void)depth; (void)data_size; (void)flags;
+    *qid = 3001;
+    g_q_head = g_q_tail = g_q_count = 0;
+    printf("[OSAL] QueueCreate \"%s\" id=%u depth=%u msgsize=%zu\n",
+           name, *qid, MAX_Q_DEPTH, (size_t)MSG_SZ);
+    return OS_SUCCESS;
+}
+
+OS_Status OS_QueuePut(osal_id_t qid, const void *data,
+                      size_t size, uint32_t flags)
+{
+    (void)qid; (void)flags;
+    if (g_q_count &gt;= MAX_Q_DEPTH) return OS_ERR_FULL;
+    size_t copy_sz = size &lt; MSG_SZ ? size : MSG_SZ;
+    memcpy(g_q_store[g_q_head], data, copy_sz);
+    g_q_head = (g_q_head + 1) % MAX_Q_DEPTH;
+    g_q_count++;
+    return OS_SUCCESS;
+}
+
+OS_Status OS_QueueGet(osal_id_t qid, void *data, size_t size,
+                      size_t *copied, int32_t timeout)
+{
+    (void)qid; (void)timeout;
+    if (g_q_count == 0) return OS_ERR_EMPTY;
+    size_t copy_sz = size &lt; MSG_SZ ? size : MSG_SZ;
+    memcpy(data, g_q_store[g_q_tail], copy_sz);
+    g_q_tail = (g_q_tail + 1) % MAX_Q_DEPTH;
+    g_q_count--;
+    if (copied) *copied = copy_sz;
+    return OS_SUCCESS;
+}
+
+typedef struct { uint32_t id; char text[28]; } AppMsg_t;
+
+int main(void)
+{
+    osal_id_t qid;
+    OS_Status status;
+
+    status = OS_QueueCreate(&amp;qid, "APP_PIPE", 8, sizeof(AppMsg_t), 0);
+    if (status != OS_SUCCESS) { printf("QueueCreate failed\n"); return 1; }
+
+    /* Producer puts 3 messages */
+    for (uint32_t i = 0; i &lt; 3; i++) {
+        AppMsg_t msg = { .id = i };
+        snprintf(msg.text, sizeof(msg.text), "pkt_%u", i);
+        status = OS_QueuePut(qid, &amp;msg, sizeof(msg), OS_CHECK);
+        printf("[PUT] id=%u status=%d\n", msg.id, status);
+    }
+
+    /* Consumer drains */
+    AppMsg_t rxmsg;
+    size_t   rxsz;
+    while (OS_QueueGet(qid, &amp;rxmsg, sizeof(rxmsg), &amp;rxsz, OS_CHECK)
+           == OS_SUCCESS) {
+        printf("[GET] id=%u text=\"%s\" copied=%zu\n",
+               rxmsg.id, rxmsg.text, rxsz);
+    }
+
+    /* Try to get from empty queue */
+    status = OS_QueueGet(qid, &amp;rxmsg, sizeof(rxmsg), &amp;rxsz, OS_CHECK);
+    printf("[GET] Empty queue status=%d (expected %d)\n",
+           status, OS_ERR_EMPTY);
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Thread-Safe Event Log</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Implement a thread-safe event log using a ring buffer and a mutex. The <code>EventLog_Push</code> function must be callable from multiple threads. Complete the stubs below.</p>
+        <p><strong>Expected output (order may vary):</strong></p>
+        <pre>EventLog has 4 entries:
+  [0] id=1 msg=Thread-A event 0
+  [1] id=2 msg=Thread-B event 0
+  ...
+</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include &lt;stdint.h&gt;&#10;#include &lt;stdio.h&gt;&#10;#include &lt;string.h&gt;&#10;#include &lt;pthread.h&gt;&#10;&#10;#define LOG_CAP 8&#10;&#10;typedef struct { uint32_t id; char msg[32]; } LogEntry_t;&#10;&#10;typedef struct {&#10;    LogEntry_t    buf[LOG_CAP];&#10;    uint32_t      head, count;&#10;    uint32_t      next_id;&#10;    pthread_mutex_t lock;&#10;} EventLog_t;&#10;&#10;static EventLog_t g_log;&#10;&#10;void EventLog_Init(EventLog_t *log)&#10;{&#10;    memset(log, 0, sizeof(*log));&#10;    /* TODO: initialize the mutex */&#10;}&#10;&#10;void EventLog_Push(EventLog_t *log, const char *msg)&#10;{&#10;    /* TODO: lock, add entry, handle wrap-around, unlock */&#10;}&#10;&#10;static void *thread_fn(void *arg)&#10;{&#10;    const char *name = (const char*)arg;&#10;    for (int i = 0; i &lt; 2; i++) {&#10;        char buf[32];&#10;        snprintf(buf, sizeof(buf), &quot;%s event %d&quot;, name, i);&#10;        EventLog_Push(&amp;g_log, buf);&#10;    }&#10;    return NULL;&#10;}&#10;&#10;int main(void)&#10;{&#10;    EventLog_Init(&amp;g_log);&#10;    pthread_t ta, tb;&#10;    pthread_create(&amp;ta, NULL, thread_fn, &quot;Thread-A&quot;);&#10;    pthread_create(&amp;tb, NULL, thread_fn, &quot;Thread-B&quot;);&#10;    pthread_join(ta, NULL);&#10;    pthread_join(tb, NULL);&#10;    printf(&quot;EventLog has %u entries:\n&quot;, g_log.count);&#10;    for (uint32_t i = 0; i &lt; g_log.count; i++)&#10;        printf(&quot;  [%u] id=%u msg=%s\n&quot;, i, g_log.buf[i].id, g_log.buf[i].msg);&#10;    return 0;&#10;}">#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;pthread.h&gt;
+
+#define LOG_CAP 8
+typedef struct { uint32_t id; char msg[32]; } LogEntry_t;
+typedef struct {
+    LogEntry_t      buf[LOG_CAP];
+    uint32_t        head, count, next_id;
+    pthread_mutex_t lock;
+} EventLog_t;
+static EventLog_t g_log;
+
+void EventLog_Init(EventLog_t *log)
+{
+    memset(log, 0, sizeof(*log));
+    /* TODO: init mutex */
+}
+
+void EventLog_Push(EventLog_t *log, const char *msg)
+{
+    /* TODO: lock, write entry, unlock */
+}
+
+static void *thread_fn(void *arg)
+{
+    const char *name = (const char*)arg;
+    for (int i = 0; i &lt; 2; i++) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%s event %d", name, i);
+        EventLog_Push(&amp;g_log, buf);
+    }
+    return NULL;
+}
+
+int main(void)
+{
+    EventLog_Init(&amp;g_log);
+    pthread_t ta, tb;
+    pthread_create(&amp;ta, NULL, thread_fn, "Thread-A");
+    pthread_create(&amp;tb, NULL, thread_fn, "Thread-B");
+    pthread_join(ta, NULL); pthread_join(tb, NULL);
+    printf("EventLog has %u entries:\n", g_log.count);
+    for (uint32_t i = 0; i &lt; g_log.count; i++)
+        printf("  [%u] id=%u msg=%s\n", i, g_log.buf[i].id, g_log.buf[i].msg);
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">In cFS Software Bus, how does a receiving app subscribe to messages?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">By registering an interrupt handler for the message ID</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">By polling a shared memory region for new data</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">By calling <code>CFE_SB_Subscribe(MsgId, PipeId)</code> with a message ID and a pipe handle created with <code>CFE_SB_CreatePipe</code></div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">By opening a POSIX message queue with the same name as the sender</div>
+      </div>
+      <div class="quiz-expl">The cFS SB uses a publish-subscribe pattern. Each app creates one or more pipes (receive queues) with <code>CFE_SB_CreatePipe</code>, then calls <code>CFE_SB_Subscribe(MsgId, PipeId)</code> for each message ID it wants to receive. The SB internally routes published messages to all subscribers' pipes. This decouples sender and receiver complete.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p3t3" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph3)"></span>PHASE 3</span>
+    <h2 class="sec-title">Timers & Clocks</h2>
+    <p class="sec-sub">POSIX high-resolution timers, monotonic clocks, and periodic scheduling patterns for flight software.</p>
+  </div>
+
+  <div class="theory">
+    <h3>POSIX High-Resolution Timers (<code>timer_create</code>)</h3>
+    <p>Beyond <code>setitimer()</code>, the modern POSIX API uses <code>timer_create()</code>, <code>timer_settime()</code>, and <code>timer_gettime()</code> for flexible timer management. Timers can be set to expire once (one-shot) or repeatedly (periodic), and they deliver signals with <code>sigevent</code> notification.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      In flight software, use <code>CLOCK_MONOTONIC</code> as the clock ID for all timers. This ensures timing measurements are not affected by system clock adjustments.</div>
+
+    <p>The following example demonstrates how to create a one-shot POSIX timer using <code>timer_create()</code> that fires after a specified duration and executes a signal handler:</p>
+    <pre><code class="language-c">/* ex5_hrtimer.c — gcc -std=c99 -Wall ex5_hrtimer.c -lrt */
+#include &lt;stdio.h&gt;
+#include &lt;signal.h&gt;
+#include &lt;time.h&gt;
+#include &lt;unistd.h&gt;
+
+static void handler(int sig, siginfo_t *si, void *uc)
+{
+    printf("Timer expired! Overrun count: %d\n", si->si_overrun);
+}
+
+int main(void)
+{
+    struct sigaction sa;
+    struct sigevent se;
+    timer_t timer;
+
+    /* Install signal handler */
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_sigaction = handler;
+    sa.sa_flags = SA_SIGINFO;
+    sigaction(SIGRTMIN, &sa, NULL);
+
+    /* Configure the sigevent structure */
+    se.sigev_notify = SIG_SIGTHREAD;
+    se.sigev_signo = SIGRTMIN;
+    se.sigev_value.sival_int = 0;
+
+    /* Create the timer */
+    if (timer_create(CLOCK_MONOTONIC, &se, &timer) == -1) {
+        perror("timer_create");
+        return 1;
+    }
+
+    /* Set the timer to expire after 2 seconds, one-shot */
+    struct itimerspec its;
+    its.it_value.tv_sec  = 2;
+    its.it_value.tv_nsec = 0;
+    its.it_interval.tv_sec  = 0;
+    its.it_interval.tv_nsec = 0;
+
+    if (timer_settime(timer, 0, &its, NULL) == -1) {
+        perror("timer_settime");
+        return 1;
+    }
+
+    /* Block until the timer expires */
+    (void)getchar();
+
+    /* Delete the timer */
+    if (timer_delete(timer) == -1) {
+        perror("timer_delete");
+    }
+
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">POSIX timer with arm/disarm (ITIMER_REAL)</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex4_timer.c — gcc -std=c99 -Wall ex4_timer.c -lrt */
+#include &lt;time.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;signal.h&gt;
+#include &lt;unistd.h&gt;
+
+/* Handler for timer expiration — siginfo_t contains overrun count */
+static void timer_handler(int sig, siginfo_t *si, void *uc)
+{
+    printf("Timer expired after 1.5 seconds\n");
+    if (si->si_overrun > 0) {
+        printf("Timer overrun count: %d\n", si->si_overrun);
+    }
+}
+
+int main(void)
+{
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_sigaction = timer_handler;
+    sa.sa_flags = SA_SIGINFO;
+    if (sigaction(SIGALRM, &sa, NULL) == -1) {
+        perror("sigaction");
+        return 1;
+    }
+
+    struct itimerval tick;
+    /* First argument: initial value; second: periodic interval */
+    tick.it_value.tv_sec  = 1;
+    tick.it_value.tv_usec = 0;
+    tick.it_interval.tv_sec  = 1;
+    tick.it_interval.tv_usec = 0;
+
+    /* arm the timer */
+    if (setitimer(ITIMER_REAL, &tick, NULL) == -1) {
+        perror("setitimer");
+        return 1;
+    }
+
+    /* Block — the timer will fire asynchronously */
+    (void)getchar();
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Create a One-Shot POSIX Timer</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Complete the code to create a one-shot POSIX timer that expires after 5 seconds and prints "Timeout!" when it fires. Use <code>timer_create()</code>, <code>timer_settime()</code>, and a signal handler for SIGRTMIN.</p>
+        <p><strong>Expected output:</strong></p>
+        <pre>Timeout!</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <stdio.h>&#10;#include <signal.h>&#10;#include <time.h>&#10;#include <unistd.h>&#10;&#10;/* TODO: Install a signal handler for SIGRTMIN */&#10;/* TODO: Configure sigevent for timer notification */&#10;/* TODO: Create the timer using timer_create() */&#10;/* TODO: Set the timer to expire after 5 seconds */&#10;/* TODO: Wait for timer expiration (e.g., getchar()) */&#10;int main(void)&#10;{&#10;    /* TODO: Delete the timer */&#10;    return 0;&#10;}">#include <stdio.h>
+#include <signal.h>
+#include <time.h>
+#include <unistd.h>
+
+/* TODO: Install a signal handler for SIGRTMIN */
+
+/* TODO: Configure sigevent for timer notification */
+
+/* TODO: Create the timer using timer_create() */
+
+/* TODO: Set the timer to expire after 5 seconds */
+
+/* TODO: Wait for timer expiration (e.g., getchar()) */
+
+int main(void)
+{
+    /* TODO: Delete the timer */
+    return 0;
+}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What clock ID should be used with <code>timer_create()</code> for flight software and why?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">CLOCK_REALTIME — it provides the most accurate wall-clock time</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">CLOCK_MONOTONIC — it never goes backward and is safe for elapsed-time measurements in flight software</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">CLOCK_PROCESS_CPUTIME_ID — it measures real-time CPU usage</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The default — no clock ID is needed</div>
+      </div>
+      <div class="quiz-expl">CLOCK_MONOTONIC is the only safe choice for flight software timers because it represents time since an arbitrary start point and is guaranteed never to adjust. CLOCK_REALTIME can be changed by NTP or the OS, which would make timing non-deterministic. CLOCK_PROCESS_CPUTIME_ID measures CPU consumption, not wall-clock time.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p4t1" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph4)"></span>PHASE 4</span>
+    <h2 class="sec-title">cFE Core Services Overview</h2>
+    <p class="sec-sub">The cFE executive provides the foundational services that all cFS apps depend on.</p>
+  </div>
+
+  <div class="theory">
+    <h3>cFE Executable & Process Management</h3>
+    <p>The cFE (<code>cf_e</code>) is the core of the Core Flight System. It provides essential services through the <code>CFE_ES</code> module, including process creation, scheduling, and exit handling. Unlike a general-purpose OS, the cFE is deterministic — tasks have well-defined scheduling windows and the system never preempts a task during critical kernel operations.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      cFE apps must call <code>CFE_ES_Exit()</code> to terminate cleanly. Never call <code>exit()</code> from application code — it bypasses cFE cleanup and can leave shared data structures in an inconsistent state.</div>
+
+    <p>The main entry point for a cFE app typically looks like this:</p>
+    <pre><code class="language-c">/* cFE app main pattern */
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include "cfe_es.h"
+#include "cfe_platform.h"
+
+int main(int argc, char *argv[])
+{
+    int32_t status;
+    /* Required: register the app with cFE */
+    status = CFE_ES_RegisterCurrentModule();
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: CFE_ES_RegisterCurrentModule failed: %d\n", status);
+        return status;
+    }
+    /* Required: app initialization */
+    status = CFE_ES_ModuleInit();
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: CFE_ES_ModuleInit failed: %d\n", status);
+        return status;
+    }
+    /* Application main loop */
+    while (1) {
+        /* Wait for messages or perform periodic housekeeping */
+        CFE_WaitHousekeeping();
+    }
+    /* Never reached — always exit via CFE_ES_Exit */
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Code Example 2 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">cFE return code check pattern</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_es_status.c — gcc -std=c99 -Wall ex_es_status.c */
+#include &lt;stdio.h&gt;
+#include &lt;cfe_es.h&gt;
+#include &lt;cfe_error.h&gt;
+#include &lt;cfe_names.h&gt;
+
+int main(void)
+{
+    int32_t status;
+    /* Example: creating a performance log */
+    status = CFE_PerfLogEntry(100);  /* log entry ID 100 */
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: perf log entry failed\n");
+    }
+    /* ... do work ... */
+    status = CFE_PerfLogExit();
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: perf log exit failed: %d\n", status);
+    }
+    /* Example: checking a return code */
+    status = CFE_ES_PeriodicTask();
+    if (status != CFE_SUCCESS) {
+        printf("Periodic task error: %d\n", status);
+        CFE_ES_Exit(status);
+    }
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Register and Initialize a cFE Module</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Complete the code to register the current module with cFE and perform required initialization. The code should call <code>CFE_ES_RegisterCurrentModule()</code> and <code>CFE_ES_ModuleInit()</code>, check return codes, and enter the main loop calling <code>CFE_WaitHousehousekeeping()</code>.</p>
+        <p><strong>Expected output (on successful init):</strong></p>
+        <pre>Module registered successfully
+Module initialized successfully</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <stdio.h>&#10;#include <cfe_es.h>&#10;#include <cfe_error.h>&#10;&#10;int main(void)&#10;{&#10;    /* TODO: Register the current module with cFE */&#10;    status = CFE_ES_RegisterCurrentModule();&#10;    /* TODO: Check return code */&#10;    /* TODO: Initialize the module */&#10;    status = CFE_ES_ModuleInit();&#10;    /* TODO: Check return code */&#10;    /* TODO: Main loop */&#10;    while (1) {&#10;        CFE_WaitHousekeeping();&#10;    }&#10;    return 0;&#10;}">#include <stdio.h>&#10;#include <cfe_es.h>&#10;#include <cfe_error.h>&#10;&#10;int main(void)&#10;{&#10;    int32_t status;&#10;    /* TODO: Register the current module with cFE */&#10;    status = CFE_ES_RegisterCurrentModule();&#10;    /* TODO: Check return code */&#10;    /* TODO: Initialize the module */&#10;    status = CFE_ES_ModuleInit();&#10;    /* TODO: Check return code */&#10;    /* TODO: Main loop */&#10;    while (1) {&#10;        CFE_WaitHousekeeping();&#10;    }&#10;    return 0;&#10;}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What is the proper way for a cFE application to terminate?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Call <code>exit()</code> from main()</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">Call <code>CFE_ES_Exit()</code> with a status code</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Return 0 from main()</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">Power cycle the spacecraft</div>
+      </div>
+      <div class="quiz-expl">Calling <code>exit()</code> from application code bypasses cFE cleanup routines. The proper pattern is to call <code>CFE_ES_Exit(status)</code>, which performs necessary cleanup and ensures a deterministic shutdown.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p4t2" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph4)"></span>PHASE 4</span>
+    <h2 class="sec-title">Software Bus (CFE_SB)</h2>
+    <p class="sec-sub">Publish-subscribe message routing for spacecraft communication.</p>
+  </div>
+
+  <div class="theory">
+    <h3>Publish-Subscribe Pattern</h3>
+    <p>The cFS Software Bus (CFE_SB) implements a publish-subscribe messaging pattern. Publishers send messages to a topic ID without knowing who subscribes. Subscribers express interest in a message ID and receive all published messages matching that ID. This decouples producers from consumers — you can add, remove, or replace apps without modifying senders.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Messages are buffered in pipes. A subscriber creates a pipe with <code>CFE_SB_CreatePipe</code> and subscribes to desired message IDs with <code>CFE_SB_Subscribe</code>. The SB routes matching publications to the appropriate pipe.</div>
+
+    <h3>Message Publication</h3>
+    <p>To publish a message, an app builds a data structure, fills in the fields, and calls <code>CFE_SB_Publish</code> with the message reference and the topic ID. The topic ID is a 16-bit value that identifies the message type. Multiple subscribers can receive the same message simultaneously.</p>
+
+    <h3>Pipe Creation</h3>
+    <p>Each subscriber creates a receive pipe using <code>CFE_SB_CreatePipe</code>. The pipe has a maximum depth and message size. When the pipe is full, new messages either overwrite the oldest (default policy) or are dropped, depending on the pipe configuration.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Use descriptive topic IDs (e.g., <code>TELEMETRY_HK_T</code>) rather than raw numbers. Define them in a header file shared between publisher and subscriber apps.</div>
+</div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">SB send and receive pattern</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_sb_pattern.c — gcc -std=c99 -Wall ex_sb_pattern.c */
+#include &lt;stdio.h&gt;
+#include &lt;cfe_sb.h&gt;
+#include &lt;cfe_error.h&gt;
+#include &lt;string.h&gt;
+
+#define MY_TOPIC_ID  0x1800U /* Custom topic ID for this app */
+#define MY_MSG_SIZE  32U
+#define PIPE_DEPTH   8U
+
+typedef struct {
+    uint32_t timestamp;
+    uint32_t housekeeping[4];
+} MyMsg_t;
+
+int main(void)
+{
+    int32_t status;
+    /* Create a receive pipe */
+    status = CFE_SB_CreatePipe("MY_APP_PIPE", PIPE_DEPTH, MY_MSG_SIZE);
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: CFE_SB_CreatePipe failed: %d\n", status);
+        return 1;
+    }
+    /* Subscribe to our topic */
+    status = CFE_SB_Subscribe(MY_TOPIC_ID, "MY_APP_PIPE");
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: CFE_SB_Subscribe failed: %d\n", status);
+        return 1;
+    }
+    /* Build and publish a message */
+    MyMsg_t msg;
+    msg.timestamp = 1234567890;
+    msg.housekeeping[0] = 0;
+    msg.housekeeping[1] = 0;
+    msg.housekeeping[2] = 0;
+    msg.housekeeping[3] = 0;
+    status = CFE_SB_Publish(&msg, MY_TOPIC_ID);
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: CFE_SB_Publish failed: %d\n", status);
+    }
+    /* Receive a message */
+    uint32_t recv_len;
+    CFE_SB MsgId_t;
+    status = CFE_SB_Rcv(&msg, &recv_len, MY_TOPIC_ID, CFE_SB_POLL);
+    if (status == CFE_SUCCESS) {
+        printf("Received message: timestamp=%u\n", msg.timestamp);
+    }
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Create SB Pipe and Subscribe</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Complete the code to create a Software Bus pipe named "MY_DATA_PIPE" with depth 16 and message size 64 bytes, then subscribe to topic ID 0x1880.</p>
+        <p><strong>Expected output (on success):</strong></p>
+        <pre>Pipe created successfully
+Subscribed successfully</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <cfe_sb.h>&#10;#include <cfe_error.h>&#10;&#10;int main(void)&#10;{&#10;    /* TODO: Create pipe named "MY_DATA_PIPE" depth 16 size 64 */&#10;    status = CFE_SB_CreatePipe("MY_DATA_PIPE", 16, 64);&#10;    /* TODO: Check status */&#10;    /* TODO: Subscribe to topic 0x1880 on the pipe */&#10;    status = CFE_SB_Subscribe(0x1880, "MY_DATA_PIPE");&#10;    /* TODO: Check status */&#10;    return 0;&#10;}">#include <cfe_sb.h>&#10;#include <cfe_error.h>&#10;&#10;int main(void)&#10;{&#10;    int32_t status;&#10;    /* TODO: Create pipe named "MY_DATA_PIPE" depth 16 size 64 */&#10;    status = CFE_SB_CreatePipe("MY_DATA_PIPE", 16, 64);&#10;    /* TODO: Check status */&#10;    /* TODO: Subscribe to topic 0x1880 on the pipe */&#10;    status = CFE_SB_Subscribe(0x1880, "MY_DATA_PIPE");&#10;    /* TODO: Check status */&#10;    return 0;&#10;}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What happens when a Software Bus pipe is full and a new message is published?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The message is lost permanently</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, true)">The oldest message in the pipe is overwritten (default policy)</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The publisher blocks until space is available</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">The SB drops the message and logs an error automatically</div>
+      </div>
+      <div class="quiz-expl">By default, when a pipe reaches its maximum depth, newly published messages overwrite the oldest unread message. This ensures the most recent data is always available, which is the preferred policy for telemetry in flight software.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p4t3" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph4)"></span>PHASE 4</span>
+    <h2 class="sec-title">App Structure & Lifecycle</h2>
+    <p class="sec-sub">How cFE apps are structured from entry point to periodic task to clean exit.</p>
+  </div>
+
+  <div class="theory">
+    <h3>cFE App Entry Points</h3>
+    <p>Every cFE application must provide three essential entry points that the cFE executive calls during its lifecycle:</p>
+    <ol>
+      <li><strong>int32_t AppMain()</strong> — the primary task function. This is where the app spends most of its time, typically waiting for messages, performing housekeeping, or processing data.</li>
+      <li><strong>int32_t AppInit()</strong> — called once during system bootstrap. Use this for one-time setup: creating pipes, registering task priorities, allocating static buffers.</li>
+      <li><strong>void AppHealthCheck()</strong> — called periodically by the cFE watchdog. This is the app's chance to report status, freshness of data, or check its own internal health.</li>
+    </ol>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      The cFE executive calls these functions — you do not call them directly. The function signatures must match exactly what the cFE expects, or the linker will fail.</div>
+
+    <h3>Housekeeping Pattern</h3>
+    <p>Every cFE app implements a housekeeping function that runs periodically. Typical housekeeping duties include:</p>
+    <ul>
+      <li>Reporting health status via <code>CFE_EVS_SendEvent</code></li>
+      <li>Refreshing timestamps on housekeeping telemetry</li>
+      <li>Checking for watchdog timeouts</li>
+      <li>Performing any necessary cleanup or reinitialization</li>
+    </ul>
+
+    <h3>Termination and Exit</h3>
+    <p>When a cFE app needs to terminate, it calls <code>CFE_ES_Exit(status)</code>. The executive performs cleanup: closing pipes, freeing resources, and signaling the parent process. An app should never simply return from AppMain — always use the explicit exit function.</p>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Full cFE app skeleton</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* cfe_app_skeleton.c — minimal cFE app structure */
+#include &lt;stdio.h&gt;
+#include &lt;cfe_es.h&gt;
+#include &lt;cfe_platform.h&gt;
+#include &lt;cfe_event.h&gt;
+#include &lt;cfe_sb.h&gt;
+
+#define MY_APP_NAME "MY_APP"
+#define MY_APP_TOPIC 0x1880U
+
+void AppHealthCheck(void)
+{
+    /* Report our health status to the cFE event services */
+    CFE_EVS_SendEvent(0, CFE_EVS_APP_ERROR, "Health check running");
+}
+
+int32_t AppInit(void)
+{
+    int32_t status = CFE_SUCCESS;
+    /* Create a receive pipe */
+    status = CFE_SB_CreatePipe("PIPE_NAME", 8, 64);
+    if (status != CFE_SUCCESS) {
+        return status;
+    }
+    /* Subscribe to our topic */
+    status = CFE_SB_Subscribe(MY_APP_TOPIC, "PIPE_NAME");
+    if (status != CFE_SUCCESS) {
+        return status;
+    }
+    /* Initialize data buffers, etc. */
+    return CFE_SUCCESS;
+}
+
+int32_t AppMain(void)
+{
+    int32_t status;
+    CFE_SBufBuf_t msg;
+    /* Main loop — wait for and process messages */
+    while (1) {
+        status = CFE_SB_Rcv(&msg, NULL, MY_APP_TOPIC, CFE_SB_POLL);
+        if (status == CFE_SUCCESS) {
+            /* Process the message */
+            AppHealthCheck();
+        }
+        /* Housekeeping — let the cFE know we're alive */
+        CFE_EVS_SendEvent(0, CFE_EVS_INFORMATION, "App cycling");
+    }
+    /* Never reached */
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Complete cFE App Skeleton</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Complete the skeleton by implementing AppInit to create a pipe and subscribe to a topic, and AppMain to receive messages in a poll loop and call AppHealthCheck each iteration.</p>
+        <p><strong>Expected output (when message received):</strong></p>
+        <pre>Message received and processed
+Health check running</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <cfe_es.h>&#10;#include <cfe_sb.h>&#10;#include <cfe_event.h>&#10;&#10;#define MY_APP_NAME "MY_APP"&#10;#define MY_APP_TOPIC 0x1880U&#10;&#10;void AppHealthCheck(void)&#10;{&#10;    /* TODO: Report health status */&#10;    CFE_EVS_SendEvent(0, CFE_EVS_APP_ERROR, "");&#10;}&#10;&#10;int32_t AppInit(void)&#10;{&#10;    /* TODO: Create a receive pipe */&#10;    /* TODO: Subscribe to MY_APP_TOPIC */&#10;    return CFE_SUCCESS;&#10;}&#10;&#10;int32_t AppMain(void)&#10;{&#10;    int32_t status;&#10;    CFE_SBufBuf_t msg;&#10;    /* TODO: Main loop — poll for messages */&#10;    while (1) {&#10;        /* TODO: Receive message */&#10;        /* TODO: Call AppHealthCheck() */&#10;    }&#10;    return 0;&#10;}">#include <cfe_es.h>&#10;#include <cfe_sb.h>&#10;#include <cfe_event.h>&#10;&#10;#define MY_APP_NAME "MY_APP"&#10;#define MY_APP_TOPIC 0x1880U&#10;&#10;void AppHealthCheck(void)&#10;{&#10;    /* TODO: Report health status */&#10;    CFE_EVS_SendEvent(0, CFE_EVS_APP_ERROR, "");&#10;}&#10;&#10;int32_t AppInit(void)&#10;{&#10;    /* TODO: Create a receive pipe */&#10;    /* TODO: Subscribe to MY_APP_TOPIC */&#10;    return CFE_SUCCESS;&#10;}&#10;&#10;int32_t AppMain(void)&#10;{&#10;    int32_t status;&#10;    CFE_SBufBuf_t msg;&#10;    /* TODO: Main loop — poll for messages */&#10;    while (1) {&#10;        /* TODO: Receive message */&#10;        /* TODO: Call AppHealthCheck() */&#10;    }&#10;    return 0;&#10;}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">Which of the following is NOT a required cFE app entry point?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">AppMain</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">AppInit</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">AppHealthCheck</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">AppRun</div>
+      </div>
+      <div class="quiz-expl">The three required entry points for a cFE app are AppMain, AppInit, and AppHealthCheck. AppRun is not a cFE-defined function — it may exist in some RTOS porting layers but is not part of the cFE executive.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p4t4" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph4)"></span>PHASE 4</span>
+    <h2 class="sec-title">Command Dispatch Tables</h2>
+    <p class="sec-sub">Routing function codes to handlers — the cFS command pattern.</p>
+  </div>
+
+  <div class="theory">
+    <h3>cFS Command Framework</h3>
+    <p>The cFS command framework provides a standardized way to receive and route command packets from the ground system. Commands are sent as CCSDS telecommand packets with a function code (FC) in the primary header. The receiving app routes the command to the appropriate handler based on the FC.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Every command handler must have the signature: <code>void (*handler)(const CFE_SB_Buffer_t *)</code>. The dispatch table maps function codes to handlers, enabling O(1) lookup without a switch statement.</div>
+
+    <h3>Function Code Convention</h3>
+    <p>Function codes are typically numbered 0-N. FC 0 is usually reserved for NOOP (no-operation). Other common conventions:</p>
+    <ul>
+      <li>FC 1: Reset counters</li>
+      <li>FC 2: Set parameters</li>
+      <li>FC 3-255: Application-specific commands</li>
+    </ul>
+
+    <h3>Dispatch Table Pattern</h3>
+    <p>A dispatch table is an array of structures, each containing a handler function pointer and the expected packet length. The dispatcher checks the function code range, verifies the packet length, and then calls the handler — all in O(1) time.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Use a <code>typedef</code> for the handler type: <code>typedef void (*CmdHandler_t)(const CFE_SB_Buffer_t *)</code>. This makes table declarations far more readable.</div>
+</div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Command dispatch table pattern</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_cmd_dispatch.c — gcc -std=c99 -Wall ex_cmd_dispatch.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+#define CMD_NOOP             0U
+#define CMD_RESET          1U
+#define CMD_SET_PARAM      2U
+#define NUM_COMMANDS       3U
+
+/* Handler type definition */
+typedef void (*CmdHandler_t)(const void *buf);
+
+/* Command handler implementations */
+static void HandleNoop(const void *buf)
+{
+    (void)buf;
+    printf("[CMD] NOOP executed\n");
+}
+
+static void HandleResetCounters(const void *buf)
+{
+    (void)buf;
+    printf("[CMD] Counters reset\n");
+}
+
+static void HandleSetParam(const void *buf)
+{
+    const int32_t *param = (const int32_t *)buf;
+    printf("[CMD] Set parameter: %d\n", *param);
+}
+
+/* Dispatch table: indexed by function code */
+static const CmdEntry_t g_CmdTable[NUM_COMMANDS] = {
+    [CMD_NOOP]        = { HandleNoop,          8  },
+    [CMD_RESET]       = { HandleResetCounters, 8  },
+    [CMD_SET_PARAM]   = { HandleSetParam,      sizeof(int32_t) },
+};
+
+/* Dispatcher function */
+static void DispatchCommand(uint8_t fc, const void *buf)
+{
+    if (fc >= NUM_COMMANDS) {
+        printf("[ERR] Unknown function code: %u\n", fc);
+        return;
+    }
+    if (((const uint8_t *)buf)[0] != 0x1880U) {
+        printf("[ERR] Invalid packet header\n");
+        return;
+    }
+    if (buf_expected_len != g_CmdTable[fc].expected_len) {
+        printf("[ERR] Length mismatch: got %u expected %u\n",
+               ((const uint8_t *)buf)[1], g_CmdTable[fc].expected_len);
+        return;
+    }
+    /* O(1) dispatch — no switch/if chain */
+    g_CmdTable[fc].handler(buf);
+}
+
+int main(void)
+{
+    /* Test all commands */
+    DispatchCommand(CMD_NOOP, NULL);
+    DispatchCommand(CMD_RESET, NULL);
+    DispatchCommand(CMD_SET_PARAM, (const void *)&(int32_t){42});
+    /* Test invalid FC */
+    DispatchCommand(99, NULL);
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Command Dispatch Table for Lunar Lander</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Implement a command dispatch table for a lunar lander flight software app with 3 commands: <code>CMD_LANDING_DATA_REQUEST</code> (FC=0), <code>CMD_EMERGENCY_STOP</code> (FC=1), and <code>CMD_STATUS_REQUEST</code> (FC=2). Each handler prints a descriptive message. The dispatcher must check the function code range and call the appropriate handler.</p>
+        <p><strong>Expected output:</strong></p>
+        <pre>Landing data requested
+Emergency stop initiated
+Status response sent</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <stdint.h>&#10;#include <stdio.h>&#10;&#10;#define CMD_LANDING_DATA_REQUEST    0&#10;#define CMD_EMERGENCY_STOP          1&#10;#define CMD_STATUS_REQUEST          2&#10;#define NUM_COMMANDS                3&#10;&#10;/* TODO: Define CmdHandler_t function pointer type */&#10;/* TODO: Implement handler functions */&#10;/* TODO: Declare dispatch table */&#10;/* TODO: Implement dispatcher function */&#10;void dispatch(uint8_t fc, const void *buf)&#10;{&#10;    /* check range, then call table[fc]() */&#10;}&#10;&#10;int main(void)&#10;{&#10;    dispatch(CMD_LANDING_DATA_REQUEST, NULL);&#10;    dispatch(CMD_EMERGENCY_STOP, NULL);&#10;    dispatch(CMD_STATUS_REQUEST, NULL);&#10;    dispatch(5); /* invalid */&#10;    return 0;&#10;}">#include <stdint.h>&#10;#include <stdio.h>&#10;&#10;#define CMD_LANDING_DATA_REQUEST    0&#10;#define CMD_EMERGENCY_STOP          1&#10;#define CMD_STATUS_REQUEST          2&#10;#define NUM_COMMANDS                3&#10;&#10;/* TODO: Define CmdHandler_t function pointer type */&#10;/* TODO: Implement handler functions */&#10;/* TODO: Declare dispatch table */&#10;/* TODO: Implement dispatcher function */&#10;void dispatch(uint8_t fc, const void *buf)&#10;{&#10;    /* check range, then call table[fc]() */&#10;}&#10;&#10;int main(void)&#10;{&#10;    dispatch(CMD_LANDING_DATA_REQUEST, NULL);&#10;    dispatch(CMD_EMERGENCY_STOP, NULL);&#10;    dispatch(CMD_STATUS_REQUEST, NULL);&#10;    dispatch(5); /* invalid */&#10;    return 0;&#10;}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What is the typical signature of a cFS command handler function?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">int main(int argc, char *argv[])</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">void handler(int fc)</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">void (*handler)(const CFE_SB_Buffer_t *)</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">int32_t status(uint8_t fc)</div>
+      </div>
+      <div class="quiz-expl">The cFS command framework expects command handlers to have the signature <code>void (*handler)(const CFE_SB_Buffer_t *)</code>. This allows the dispatcher to pass the raw SB buffer containing the command packet data.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p4t5" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph4)"></span>PHASE 4</span>
+    <h2 class="sec-title">Table & Event Services</h2>
+    <p class="sec-sub">Using cFE tables for parameter storage and events for anomaly reporting.</p>
+  </div>
+
+  <div class="theory">
+    <h3>cFE Table Services</h3>
+    <p>The cFE provides a table management service (CFE_TBL) for storing and retrieving static data tables at runtime. Tables can be defined at compile time and downloaded to the flight system, or created dynamically. The table service handles loading, validation, and notification when a table changes.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Tables are defined using <code>static</code> global data and registered with <code>CFE_TBL_Register</code>. The table data persists for the lifetime of the application, and the framework ensures data integrity across system resets.</div>
+
+    <h3>Event Services (CFE_EVS</h3>
+    <p>The cFE Event Services (CFE_EVS) provide a standardized way to report anomalies, health information, and diagnostic messages from flight software. Events are sent using <code>CFE_EVS_SendEvent</code> with an event ID, severity level, and description string. Ground systems subscribe to event rates and display them in the telemetry dashboard.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Use predefined event ID ranges: <code>0x00-0x7F</code> for information, <code>0x80-0xFF</code> for warnings/errors. This keeps event logs organized and searchable.</div>
+</div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">Table registration and event example</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_tbl_event.c — gcc -std=c99 -Wall ex_tbl_event.c */
+#include &lt;cfe_tbl.h&gt;
+#include &lt;cfe_evs.h&gt;
+#include &lt;stringmem&gt;
+
+/* A telemetry configuration table */
+typedef struct {
+    uint32_t sample_rate_hz;
+    uint16_t integration_time_ms;
+    uint8_t  sensor_gain;
+} TlmConfig_t;
+
+static TlmConfig_t g_TlmConfig;
+#define MY_TBL_ID  0x1000U
+#define MY_TBL_SIZE sizeof(g_TlmConfig)
+
+void AppInit(void)
+{
+    int32_t status;
+    /* Register the table with cFE */
+    status = CFE_TBL_Register(&MyTblId, &g_TlmConfig, MY_TBL_SIZE);
+    if (status != CFE_SUCCESS) {
+        printf("ERROR: TBL register failed: %d\n", status);
+    }
+}
+
+void AppHealthCheck(void)
+{
+    /* Send an information event */
+    CFE_EVS_SendEvent(0, CFE_EVS_INFORMATION, "Config: rate=%u Hz gain=%u",
+                      g_TlmConfig.sample_rate_hz, g_TlmConfig.sensor_gain);
+}
+
+int32_t AppMain(void)
+{
+    /* ... */
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Register Telemetry Config Table</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Complete the code to register a telemetry configuration table with cFE. The table should contain sample_rate_hz, integration_time_ms, and sensor_gain fields. Use the table ID 0x1000 and register it in AppInit.</p>
+        <p><strong>Expected output (on successful registration):</strong></p>
+        <pre>Table registered successfully</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <cfe_tbl.h>&#10;#include <cfe_evs.h>&#10;&#10;#define MY_TBL_ID   0x1000U&#10;#define TBL_SIZE    sizeof(TlmConfig_t)&#10;&#10;TlmConfig_t g_TlmConfig;&#10;&#10;int32_t status;&#10;&#10;int main(void)&#10;{&#10;    /* TODO: Register the table with cFE */&#10;    status = CFE_TBL_Register(&MyTblId, &g_TlmConfig, TBL_SIZE);&#10;    /* TODO: Check return code */&#10;    return 0;&#10;}">#include <cfe_tbl.h>&#10;#include <cfe_evs.h>&#10;&#10;TlmConfig_t g_TlmConfig;&#10;&#10;int32_t status;&#10;&#10;int main(void)&#10;{&#10;    /* TODO: Register the table with cFE */&#10;    status = CFE_TBL_Register(&MyTblId, &g_TlmConfig, TBL_SIZE);&#10;    /* TODO: Check return code */&#10;    return 0;&#10;}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What is the purpose of CFE_TBL_Register?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">To dynamically allocate memory for a table at runtime</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, true)">To register a static table with cFE for runtime access and validation</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">To send events to the ground system</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">To create a software bus pipe</div>
+      </div>
+      <div class="quiz-expl">CFE_TBL_Register makes a compile-time defined table available at runtime. The cFE validates the table size, handles download from ground, and provides notification when the table changes.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p4t6" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph4)"></span>PHASE 4</span>
+    <h2 class="sec-title">CCSDS Packets in C</h2>
+    <p class="sec-sub">Building CCSDS telemetry and telecommand packets that match the wire protocol.</p>
+  </div>
+
+  <div class="theory">
+    <h3>CCSDS Primary Header</h3>
+    <p>The CCSDS primary header is 6 bytes big-endian and contains the version, type, secondary header flag, and APID. Every cFS packet begins with this header. The protocol mandates big-endian byte order for all multi-byte fields.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Without <code>__attribute__((packed))</code>, compiler padding will add bytes between fields, causing the packet to not match the wire specification. Always use <code>__attribute__((packed))</code> on your packet struct.</div>
+
+    <h3>Secondary Header (Optional)</h3>
+    <p>If the type field indicates a secondary header is present, an additional 2 bytes follow the primary header. The secondary header contains version numbers and sequence flags specific to the mission.</p>
+
+    <h3>Telemetry Packet Body</h3>
+    <p>The payload following the header contains mission-specific data. The structure must use <code>__attribute__((packed))</code> and bit-fields where appropriate to exactly match the protocol definition.</p>
+
+    <h3>Telecommand Packet</h3>
+    <p>Telecommands follow the same primary header format but may include additional secondary header fields and a parameter field. The function code (FC) is located in the primary header at a fixed bit position.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Use the helper macros from the p1t3 section to extract fields: CCSDS_GET_TYPE, CCSDS_GET_APID, CCSDS_GET_SEQCNT, CCSDS_GET_PKTLEN.</div>
+</div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">CCSDS telemetry packet builder</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* ex_ccsds_tlm.c — gcc -std=c99 -Wall ex_ccsds_tlm.c */
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+/* Packed struct for CCSDS telemetry packet */
+typedef struct __attribute__((packed)) {
+    uint8_t  stream_id_hi;   /* Byte 0: version[7:5] type[4] sec_hdr[3] apid[2:0] */
+    uint8_t  stream_id_lo;   /* Byte 1: apid[7:0] */
+    uint8_t  sequence_hi;    /* Byte 2: seq_flags[7:6] seq_count[5:0] */
+    uint8_t  sequence_lo;    /* Byte 3: seq_count[7:0] */
+    uint8_t  pkt_len_hi;     /* Byte 4: pkt_data_len[15:8] */
+    uint8_t  pkt_len_lo;     /* Byte 5: pkt_data_len[7:0] */
+    int16_t  temperature;
+    uint8_t  status_flag;
+    uint8_t  science_data[3];
+} CcsdsTlmPacket_t;
+
+/* Build a CCSDS telemetry packet */
+static void build_packet(CcsdsTlmPacket_t *pkt, uint16_t apid, uint16_t seq,
+                         int16_t temp, uint8_t flags, uint8_t *science)
+{
+    /* Type=0 (TLM), SecHdrFlag=0, Version=0, APID */
+    pkt->stream_id_hi = (uint8_t)((apid >> 8) & 0x07U);
+    pkt->stream_id_lo = (uint8_t)(apid & 0xFFU);
+    /* SeqFlags=0b00 (no sec hdr), seq count */
+    pkt->sequence_hi  = (uint8_t)((seq >> 8) & 0x3FU);
+    pkt->sequence_lo  = (uint8_t)(seq & 0xFFU);
+    /* Packet data length = 2 + 3 = 5 bytes (temp + flags + science[3]) */
+    uint16_t data_len = 2 + 3;
+    pkt->pkt_len_hi   = (uint8_t)((data_len >> 8) & 0xFFU);
+    pkt->pkt_len_lo   = (uint8_t)(data_len & 0xFFU);
+    pkt->temperature  = temp;
+    pkt->status_flag  = flags;
+    memcpy(pkt->science_data, science, 3);
+}
+
+int main(void)
+{
+    CcsdsTlmPacket_t pkt;
+    uint8_t science[3] = {0x01, 0x02, 0x03};
+    build_packet(&pkt, 0x07DU, 42, 235, 1, science);
+
+    printf("CCSDS Packet (%zu bytes):\n", sizeof(CcsdsTlmPacket_t));
+    printf("  Raw bytes: ");
+    const uint8_t *raw = (const uint8_t*)&pkt;
+    for (size_t i = 0; i < sizeof(pkt); i++) {
+        printf("%02X ", raw[i]);
+    }
+    printf("\n");
+    printf("  Type       : %u\n", (raw[0] >> 4) & 0x1U);
+    printf("  APID       : 0x%03X\n", (raw[0] & 0x07U) << 8 | raw[1]);
+    printf("  SeqCount   : %u\n", ((raw[2] & 0x3FU) << 8 | raw[3]));
+    printf("  PktDataLen : %u\n", (raw[4] << 8 | raw[5]));
+    return 0;
+}</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Packed CCSDS Telemetry Packet</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Define a packed struct <code>CcsdsTlmPacket_t</code> for a CCSDS telemetry packet with 6-byte primary header, 2-byte temperature, 1-byte status flag, and 3-byte science data. Use <code>offsetof</code> to verify field positions.</p>
+        <p><strong>Expected output:</strong></p>
+        <pre>sizeof: 12 bytes
+offsetof stream_id_hi = 0
+offsetof temperature = 6
+offsetof status_flag = 8
+offsetof science_data = 9</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <stdint.h>&#10;#include <stddef.h>&#10;#include <stdio.h>&#10;&#10;/* TODO: Define packed struct CcsdsTlmPacket_t */&#10;typedef struct {&#10;    /* TODO: 6-byte primary header as uint8_t array */&#10;    /* TODO: int16_t temperature */&#10;    /* TODO: uint8_t status_flag */&#10;    /* TODO: uint8_t science_data[3] */&#10;} CcsdsTlmPacket_t;&#10;&#10;int main(void)&#10;{&#10;    printf("sizeof: %zu bytes\n", sizeof(CcsdsTlmPacket_t));&#10;    printf("offsetof stream_id_hi = %zu\n", offsetof(CcsdsTlmPacket_t, stream_id_hi));&#10;    printf("offsetof temperature = %zu\n", offsetof(CcsdsTlmPacket_t, temperature));&#10;    printf("offsetof status_flag = %zu\n", offsetof(CcsdsTlmPacket_t, status_flag));&#10;    printf("offsetof science_data = %zu\n", offsetof(CcsdsTlmPacket_t, science_data));&#10;    return 0;&#10;}">#include <stdint.h>&#10;#include <stddef.h>&#10;#include <stdio.h>&#10;&#10;/* TODO: Define packed struct CcsdsTlmPacket_t */&#10;typedef struct {&#10;    /* TODO: 6-byte primary header as uint8_t array */&#10;    /* TODO: int16_t temperature */&#10;    /* TODO: uint8_t status_flag */&#10;    /* TODO: uint8_t science_data[3] */&#10;} CcsdsTlmPacket_t;&#10;&#10;int main(void)&#10;{&#10;    printf("sizeof: %zu bytes\n", sizeof(CcsdsTlmPacket_t));&#10;    printf("offsetof stream_id_hi = %zu\n", offsetof(CcsdsTlmPacket_t, stream_id_hi));&#10;    printf("offsetof temperature = %zu\n", offsetof(CcsdsTlmPacket_t, temperature));&#10;    printf("offsetof status_flag = %zu\n", offsetof(CcsdsTlmPacket_t, status_flag));&#10;    printf("offsetof science_data = %zu\n", offsetof(CcsdsTlmPacket_t, science_data));&#10;    return 0;&#10;}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">Why must cFS packet structs use <code>__attribute__((packed))</code>?</div>
+      <div class="quiz-opt" onclick="answerQuiz(this, false)">To reduce struct size for memory efficiency</div>
+      <div class="quiz-opt" onclick="answerQuiz(this, true)">To eliminate compiler padding so the layout matches the CCSDS wire protocol exactly</div>
+      <div class="quiz-opt" onclick="answerQuiz(this, false)">To make the struct compatible with C++</div>
+      <div class="quiz-opt" onclick="answerQuiz(this, false)">To prevent unaligned access faults</div>
+      <div class="quiz-expl">Without <code>packed</code>, the compiler inserts padding bytes between struct members to align them for CPU access. This would shift field positions and cause the packet to not match the CCSDS wire specification, resulting in misinterpreted data by ground systems.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p5t1" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph5)"></span>PHASE 5</span>
+    <h2 class="sec-title">CMake for cFS</h2>
+    <p class="sec-sub">Cross-platform build system for cFE and application development.</p>
+  </div>
+
+  <div class="theory">
+    <h3>CMake Integration with cFE</h3>
+    <p>The cFE and cFS provide CMake integration utilities to simplify cross-platform builds. CMake generates platform-specific build files (makefiles, IDE project files) from a single CMakeLists.txt description. The key is using the cFE-provided toolchain files and finding modules.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Always use the cFE-provided toolchain file (<code>cfe-toolchain.cmake</code>) to ensure correct compiler flags, include paths, and endianness settings for the target platform. Do not use generic system toolchains.</div>
+
+    <h3>Basic CMakeLists.txt Pattern</h3>
+    <pre><code class="language-cmake"># Minimum CMake version
+cmake_minimum_required(VERSION 3.13)
+
+# Project definition
+project(cFE_App LANGUAGES C)
+
+# Include cFE CMake configuration
+include(CMakeCFE)
+
+# Register the application
+target_registration(cFE_App APP_NAME "my_app")
+
+# Source files
+set(SOURCES
+    src/app_init.c
+    src/app_main.c
+    src/cmd_dispatch.c
+)
+
+# Add cFE libraries
+cfe_link_libraries(cFE_App SB EVS TBL)</code></pre>
+  </div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">CMakeLists.txt for cFE app</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-cmake">/* CMakeLists.txt example */
+cmake_minimum_required(VERSION 3.13)
+project(cFE_App LANGUAGES C)
+
+include(CMakeCFE)
+
+target_registration(cFE_App APP_NAME "my_app")
+
+set(SOURCES
+    src/app_init.c
+    src/app_main.c
+)
+
+cfe_link_libraries(cFE_App SB EVS)</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Create CMake build for a cFE Module</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Create a CMakeLists.txt that registers a cFE application named "lander_app" with source files src/lander_main.c and src/lander_utils.c, linking against SB and EVS.</p>
+        <p><strong>Expected output (cmake output):</strong></p>
+        <pre>-- Configuring done
+-- Generating done
+-- Build files have been written to: ...</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="# cmake_minimum_required(VERSION 3.13)&#10;project(cFE_App LANGUAGES C)&#10;include(CMakeCFE)&#10;target_registration(cFE_App APP_NAME "my_app")&#10;set(SOURCES src/lander_main.c)&#10;cfe_link_libraries(cFE_App SB)&#10;int main(void) { return 0; }"># cmake_minimum_required(VERSION 3.13)&#10;project(cFE_App LANGUAGES C)&#10;include(CMakeCFE)&#10;target_registration(cFE_App APP_NAME "my_app")&#10;set(SOURCES src/lander_main.c)&#10;cfe_link_libraries(cFE_App SB)&#10;int main(void) { return 0; }</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">Which cMake function is used to register a cFE application?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">add_executable</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">register_app</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">target_registration</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">cfe_registration</div>
+      </div>
+      <div class="quiz-expl">The cFE CMake integration provides <code>target_registration()</code> to declare a cFE app to the build system, which generates the appropriate registration code and linker symbols.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p5t2" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph5)"></span>PHASE 5</span>
+    <h2 class="sec-title">Static & Dynamic Analysis</h2>
+    <p class="sec-sub">Using compiler tools to find bugs before they fly.</p>
+  </div>
+
+  <div class="theory">
+    <h3>Static Analysis with PC-lint / Astrée</h3>
+    <p>Static analysis tools examine source code without executing it, searching for patterns that indicate bugs, security vulnerabilities, or safety violations. For flight software, tools like PC-lint, Astrée, or the GCC plug-in are commonly used. These tools can detect issues like uninitialized variables, out-of-bounds access, and division by zero at compile time.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Run static analysis as part of every build cycle. Many cFE bugs are caught early by PC-lint's aircraft rule sets, which encode decades of flight software safety guidelines.</div>
+
+    <h3>Dynamic Analysis & Sanitizers</h3>
+    <p>Dynamic analysis tools execute the code with instrumentation to detect runtime issues. GCC and Clang provide sanitizers for address sanitization (<code>-fsanitize=address</code>), undefined behavior (<code>-fsanitize=undefined</code>), and memory leak detection (<code>-fsanitize=leak</code>). While these are primarily for development, they complement static analysis.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">TIP</div>
+      Use <code>-Wall -Wextra</code> as a minimum, and enable cFE-specific warning flags via the provided toolchain.</div>
+</div>
+
+  <!-- Code Example 1 -->
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">GCC sanitizer build flags</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-cmake"># Enable sanitizers in CMake
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fsanitize=undefined")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")</code></pre>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Enable GCC Sanitizers for cFE Code</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Modify the CMakeLists.txt to add address and undefined behavior sanitizers to the compiler flags for a lunar lander app.</p>
+        <p><strong>Expected output (build output):</strong></p>
+        <pre>AddressSanitizer: no errors found
+undefined behavior sanitizer: no errors</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="# cmake_minimum_required(VERSION 3.13)&#10;project(cFE_App LANGUAGES C)&#10;set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")&#10;int main(void) { int *p = NULL; *p = 42; return 0; }"># cmake_minimum_required(VERSION 3.13)&#10;project(cFE_App LANGUAGES C)&#10;set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")&#10;int main(void) { int *p = NULL; *p = 42; return 0; }</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">Which sanitizer detects use-after-free and buffer overflows at runtime?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">-fsanitize=strict</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">-fsanitize=address</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">-fsanitize=format</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">-fsanitize=concurrency</div>
+      </div>
+      <div class="quiz-expl">-fsanitize=address (ASAN) detects out-of-bounds accesses, use-after-free, and other memory corruption issues at runtime.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+
+<section id="p5t3" class="sec">
+  <div class="sec-header">
+    <span class="phase-badge"><span class="ph-dot" style="background:var(--ph5)"></span>PHASE 5</span>
+    <h2 class="sec-title">Unit Testing with UT-Assert</h2>
+    <p class="sec-sub">Framework for testing cFE applications with assertion checking.</p>
+  </div>
+
+  <div class="theory">
+    <h3>UT-Assert Framework</h3>
+    <p>The UT-Assert (Unit Testing with Assertions) framework is the standard unit testing utility for cFS flight software. It provides <code>UT_ASSERT</code>, <code>UT_CHECK</code>, and <code>UT_ASSERT_EQUAL</code> macros that report failing conditions with file, line, and a descriptive message. Tests are organized into test groups and can be run via the command-line tester tool.</p>
+
+    <div class="callout callout-important">
+      <div class="callout-title">IMPORTANT</div>
+      Never use the standard C <code>assert()</code> in cFE code — it is disabled in production builds. Always use <code>UT_ASSERT</code> from the UT-Assert framework, which works in both development and flight configurations.</div>
+
+    <h3>Test Pattern</h3>
+  <div class="cb">
+    <div class="cb-head">
+      <span class="cb-title">UT-Assert unit test pattern</span>
+      <div class="cb-acts">
+        <button onclick="copyCode(this)">Copy</button>
+        <button onclick="openGodbolt(this)">▶ Godbolt</button>
+      </div>
+    </div>
+<pre><code class="language-c">/* test_example.c — linked with ut_assert library */
+#include &lt;ut_assert.h&gt;
+#include &lt;stdio.h&gt;
+
+void test_division(void){
+    int32_t result;
+    UT_ASSERT_divide(10, 2, &result);
+    UT_ASSERT_EQUAL(result, 5);
+}
+
+int main(void){
+    int num_failures = 0;
+    num_failures += UT_RUN(test_division);
+    if (num_failures == 0) {
+        printf("All tests passed!\n");
+    }
+    return num_failures;
+}</code></pre>
+  </div>
+  </div>
+
+  <!-- Practice -->
+  <div class="prac">
+    <div class="prac-head">
+      <span class="prac-title">✏ Practice — Write a UT-Assert test for division</span>
+    </div>
+    <div class="prac-body">
+      <div class="prac-desc">
+        <p>Complete the test function to divide two numbers and check the result using UT-Assert macros. The function should divide 20 by 4 and verify the result is 5.</p>
+        <p><strong>Expected output:</strong></p>
+        <pre>Test passed: 20 / 4 = 5</pre>
+      </div>
+      <div class="ed-wrap">
+        <textarea class="code-ed" data-orig="#include <ut_assert.h>&#10;void test_func(void)&#10;{&#10;    /* TODO: Complete the division test */&#10;    int32_t result;&#10;    UT_ASSERT_divide(20, 4, &result);&#10;    /* TODO: Check result */&#10;    UT_ASSERT_EQUAL(result, 5);&#10;}&#10;&#10;int main(void)&#10;{&#10;    return 0;&#10;}">#include <ut_assert.h>&#10;void test_func(void)&#10;{&#10;    /* TODO: Complete the division test */&#10;    int32_t result;&#10;    UT_ASSERT_divide(20, 4, &result);&#10;    /* TODO: Check result */&#10;    UT_ASSERT_EQUAL(result, 5);&#10;}&#10;&#10;int main(void)&#10;{&#10;    return 0;&#10;}</textarea>
+        <div class="ed-acts">
+          <button onclick="resetEditor(this)">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <div class="quiz-head">Quiz</div>
+    <div class="quiz-body">
+      <div class="quiz-q">What is the recommended assertion macro to use in cFE flight code?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">assert()</div>
+        <div class="quiz-opt" data-correct onclick="answerQuiz(this, true)">UT_ASSERT</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">printf("ERROR")</div>
+        <div class="quiz-opt" onclick="answerQuiz(this, false)">return -1</div>
+      </div>
+      <div class="quiz-expl">The standard <code>assert()</code> macro is disabled in production cFE builds. Always use <code>UT_ASSERT</code> from the UT-Assert framework, which is enabled regardless of build configuration.</div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button onclick="prevSec()">← Previous</button>
+    <button onclick="nextSec()">Next →</button>
+  </div>
+</section>
+    </div>
+  </main>
+</div>
+
+<div class="toast"></div>
+
+<!-- Syntax Highlighting & App Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cmake.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
